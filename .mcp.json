@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "codebase-memory-mcp": {
+      "command": "C:\\Users\\JEISER\\Desktop\\Sistema_Unido\\.claude\\bin\\codebase-memory-mcp.exe",
+      "args": [],
+      "env": {
+        "CBM_CACHE_DIR": "C:\\Users\\JEISER\\Desktop\\Sistema_Unido\\.claude\\cbm-cache"
+      }
+    }
+  }
+}

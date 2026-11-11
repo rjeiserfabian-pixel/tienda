@@ -1,0 +1,22 @@
+# SOLO PARA EL VPS (o una PC con Docker). No hace falta en tu PC de desarrollo.
+# Uso:  docker compose --env-file backend/.env up -d redis
+#
+# Redis: caché (db 0), Celery (db 1) y throttling (db 2). Sin datos que migrar:
+# si se pierde, se vuelve a llenar solo. La información real vive en PostgreSQL.
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:?Defina REDIS_PASSWORD en backend/.env}
+      --appendonly no
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "127.0.0.1:6379:6379" # solo accesible desde el propio servidor
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

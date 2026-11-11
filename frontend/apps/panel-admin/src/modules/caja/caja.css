@@ -1,0 +1,402 @@
+/* Caja y bancos */
+.caja-grupo h3 {
+  margin: 8px 0 10px;
+  font-size: 15px;
+  color: var(--texto-suave);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.caja-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.caja-tarjeta {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.caja-tarjeta.inactiva {
+  opacity: 0.6;
+}
+
+.caja-tarjeta header {
+  display: grid;
+}
+
+.caja-tarjeta p {
+  margin: 0;
+}
+
+.caja-saldo {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-saldo[data-negativo] {
+  color: #ff8f84;
+}
+
+.caja-detalle {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+}
+
+.caja-detalle dt {
+  color: var(--texto-suave);
+  font-size: 12.5px;
+}
+
+.caja-detalle dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-tarjeta footer {
+  display: flex;
+}
+
+.caja-ingreso {
+  color: #6fe3a5;
+}
+
+.caja-egreso {
+  color: #ff8f84;
+}
+
+/* Sesiones de caja */
+.caja-rol {
+  display: inline-block;
+  margin-left: 6px;
+}
+
+.caja-sesion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.caja-tarjeta footer {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.conteo {
+  display: grid;
+  gap: 14px;
+}
+
+.conteo-grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px 24px;
+}
+
+.conteo-grupo h4 {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.conteo-fila {
+  display: grid;
+  grid-template-columns: 64px 84px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.conteo-fila input {
+  text-align: center;
+}
+
+.conteo-fila output {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-suave);
+}
+
+.conteo-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.conteo-resumen div {
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.conteo-resumen dt {
+  font-size: 12.5px;
+  color: var(--texto-suave);
+}
+
+.conteo-resumen dd {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.conteo-resumen div[data-tono='sobra'] dd {
+  color: #6fe3a5;
+}
+
+.conteo-resumen div[data-tono='falta'] dd {
+  color: #ff8f84;
+}
+
+/* Conciliación bancaria */
+.estado-pildora.pendiente {
+  border-color: #c58a12;
+  background: rgb(197 138 18 / 18%);
+  color: #f2c466;
+}
+
+.cabecera-ficha {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cabecera-ficha h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.cabecera-ficha p {
+  margin: 4px 0 0;
+}
+
+.barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.barra-acciones .segmentos {
+  margin-right: auto;
+}
+
+.fila-clicable {
+  cursor: pointer;
+}
+
+.fila-clicable:hover {
+  background: rgb(255 255 255 / 4%);
+}
+
+/* Reportes de caja */
+.libro-cuenta {
+  margin-bottom: 18px;
+}
+
+.libro-cuenta h4 {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+}
+
+.libro-cuenta tbody th {
+  text-align: left;
+  background: rgb(255 255 255 / 4%);
+}
+
+/* Avisos, vouchers y caja chica */
+.caja-alertas {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.caja-alertas li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--borde);
+  border-left-width: 4px;
+  border-radius: 10px;
+  background: var(--superficie);
+}
+
+.caja-alertas li[data-nivel='critica'] {
+  border-left-color: #ff8f84;
+}
+
+.caja-alertas li[data-nivel='aviso'] {
+  border-left-color: #f2c466;
+}
+
+.caja-alertas li[data-nivel='info'] {
+  border-left-color: #7fb2ff;
+}
+
+.caja-alertas strong {
+  display: block;
+}
+
+.caja-alertas .celda-suave {
+  display: block;
+  font-size: 13px;
+}
+
+.caja-alertas button {
+  margin-left: auto;
+}
+
+.caja-tarjeta .caja-bajo {
+  color: #f2c466;
+  font-size: 13px;
+}
+
+.voucher-lista {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.voucher-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.voucher-lista .celda-suave {
+  margin-right: auto;
+}
+
+.clip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--texto-suave);
+  font-size: 12.5px;
+}
+
+.gasto-fila {
+  display: grid;
+  grid-template-columns: 24px 90px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--borde);
+}
+
+/* Cada reporte reparte su contenido con aire: filtros, tarjetas y tablas no van pegados. */
+.reporte-caja {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.reporte-caja > p {
+  margin: 0;
+}
+
+
+/* Mostrador compartido por varias empresas: un solo conteo para todas las cajas */
+fieldset > .compra-aviso {
+  margin: 14px 0;
+}
+
+.caja-compartida {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 6%);
+}
+
+.caja-compartida label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.caja-compartida ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 22px;
+  font-size: 14px;
+}
+
+/* Cheques */
+.cheque-vence {
+  display: grid;
+  gap: 2px;
+}
+
+.cheque-vence small {
+  font-size: 12px;
+}
+
+.cheque-vence.vencido {
+  color: #ff8f84;
+  font-weight: 600;
+}
+
+.cheque-vence.por_vencer {
+  color: #f2c466;
+  font-weight: 600;
+}
+
+.cheque-tercero-elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.etiqueta-texto {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filtro-casilla {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .cheque-tercero-elegido {
+    flex-wrap: wrap;
+  }
+}

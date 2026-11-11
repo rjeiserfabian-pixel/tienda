@@ -1,0 +1,545 @@
+/* Cantidades y dinero alineados a la derecha, con cifras del mismo ancho. */
+.tabla-datos .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-datos .anulado td {
+  opacity: 0.55;
+}
+
+.tabla-datos .anulado .col-texto {
+  text-decoration: line-through;
+}
+
+.tabla-datos tr.fila-saldo td {
+  background: rgb(255 255 255 / 4%);
+  font-weight: 600;
+}
+
+.sub-texto {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+/* ---------- Selector de producto (con búsqueda) ---------- */
+.selector-producto {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.selector-producto .elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 6px 12px 6px 44px; /* deja libre el icono del paquete */
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 3%);
+}
+
+.selector-producto .elegido > span {
+  display: grid;
+  min-width: 0;
+}
+
+.selector-producto .elegido strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-producto .elegido button {
+  flex: none;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+
+.selector-producto ul {
+  position: absolute;
+  z-index: 5;
+  inset: calc(100% + 4px) 0 auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 10px;
+  background: #11131a;
+  box-shadow: 0 12px 30px rgb(0 0 0 / 50%);
+}
+
+.selector-producto li button {
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+}
+
+.selector-producto li button:hover,
+.selector-producto li button:focus-visible {
+  background: rgb(255 42 26 / 14%);
+}
+
+.selector-producto .sin-resultados {
+  padding: 10px;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+/* ---------- Líneas del movimiento (formulario) ---------- */
+.lineas-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.linea-cabecera {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.linea-cabecera .accion-icono {
+  margin-bottom: 4px;
+}
+
+.linea-numero {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 9px;
+  border-radius: 50%;
+  background: rgb(255 42 26 / 16%);
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.linea-valores {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-left: 40px;
+}
+
+.linea-valores.con-precio {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.linea-ubicacion {
+  margin-left: 40px;
+}
+
+.linea-ubicacion .campo {
+  margin-bottom: 0;
+}
+
+.linea-importe {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.linea-importe span {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.linea-importe strong {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumen-movimiento {
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  color: var(--texto-suave);
+  font-size: 13.5px;
+}
+
+.resumen-movimiento strong {
+  color: var(--texto);
+}
+
+@media (width <= 720px) {
+  .linea-valores,
+  .linea-valores.con-precio {
+    grid-template-columns: 1fr 1fr;
+    margin-left: 0;
+  }
+
+  .linea-ubicacion {
+    margin-left: 0;
+  }
+}
+
+/* ---------- Series o IMEI: resumen en la línea y ventana de escritura ---------- */
+.linea-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-left: 40px;
+  padding: 10px 14px;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+}
+
+.linea-series > .campo-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.linea-series-fichas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.series-modal {
+  display: grid;
+  gap: 12px;
+}
+
+.series-entrada {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.series-entrada.con-datos {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+}
+
+.series-entrada > button {
+  height: 46px;
+  margin-top: 26px;
+}
+
+.series-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.series-pegar {
+  display: grid;
+  gap: 8px;
+}
+
+.series-tabla {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.series-tabla tr.serie-repetida {
+  background: rgb(255 42 26 / 18%);
+}
+
+.series-tabla input {
+  width: 100%;
+  height: 34px;
+}
+
+@media (width <= 720px) {
+  .linea-series {
+    margin-left: 0;
+  }
+
+  .series-entrada,
+  .series-entrada.con-datos {
+    grid-template-columns: 1fr;
+  }
+
+  .series-entrada > button {
+    margin-top: 0;
+  }
+}
+
+/* ---------- Reportes: tarjetas, atajos y vista previa ---------- */
+.reportes-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.reporte-tarjeta {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 4px;
+  height: auto;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+  text-align: left;
+}
+
+.reporte-tarjeta svg {
+  margin-bottom: 4px;
+  color: var(--texto-suave);
+}
+
+.reporte-tarjeta:hover,
+.reporte-tarjeta:focus-visible {
+  border-color: var(--borde-rojo);
+}
+
+.reporte-tarjeta.activa {
+  border-color: var(--borde-rojo);
+  background: rgb(255 42 26 / 10%);
+}
+
+.reporte-tarjeta.activa svg {
+  color: var(--texto);
+}
+
+.reporte-ayuda {
+  margin-top: 4px;
+  color: var(--texto-suave);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.atajo {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+}
+
+.atajo.activo {
+  border-color: var(--borde-rojo);
+  background: rgb(255 42 26 / 22%);
+  color: var(--texto);
+  font-weight: 700;
+}
+
+.atajo.activo::before {
+  content: '✓';
+  margin-right: 6px;
+}
+
+.acciones-reporte {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.acciones-reporte > span {
+  flex: 1 1 240px;
+  font-size: 13px;
+}
+
+.vista-reporte {
+  display: grid;
+  gap: 12px;
+}
+
+.vista-reporte-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vista-reporte-cabecera h3,
+.vista-reporte-cabecera p {
+  margin: 0;
+}
+
+.resumen-reporte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+
+.resumen-reporte div {
+  display: grid;
+  gap: 2px;
+  min-width: 110px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.resumen-reporte dt {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.resumen-reporte dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Kardex: pantalla de inicio ---------- */
+.kardex-inicio {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border: 1px dashed var(--borde);
+  border-radius: 14px;
+}
+
+.kardex-inicio h3,
+.kardex-inicio h4,
+.kardex-inicio p {
+  margin: 0;
+}
+
+.kardex-inicio h4 {
+  margin-top: 6px;
+  color: var(--texto-suave);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kardex-recientes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kardex-recientes button {
+  display: grid;
+  width: 100%;
+  height: auto;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 3%);
+  text-align: left;
+}
+
+.kardex-recientes button:hover,
+.kardex-recientes button:focus-visible {
+  border-color: var(--borde-rojo);
+  background: rgb(255 42 26 / 10%);
+}
+
+/* ---------- Cierre mensual ---------- */
+.periodos-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Ficha en ventana (detalle del movimiento) ---------- */
+.detalle-movimiento .marco-tabla {
+  margin-top: 14px;
+}
+
+/* Filas de campos que se acomodan solas al ancho de la ventana */
+.fila-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+/* Botón que se ve como enlace (abre el detalle sin salir de la tabla) */
+.enlace-boton {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--texto-enlace, #8fc6f5);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Pantalla de reportes ---------- */
+.panel-reportes {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+/* Cada producto del formulario: su fila y, si lleva serie, el cuadro de series debajo */
+.linea-bloque {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 2%);
+}
+
+.linea-bloque:focus-within {
+  border-color: var(--borde-rojo);
+}
+
+/* Antigüedad del stock: la fila con unidades antiguas se destaca, y los filtros propios del reporte. */
+.tabla-datos tr[data-antiguo='si'] td {
+  background: color-mix(in srgb, var(--advertencia, #f2b84b) 12%, transparent);
+}
+
+.casilla-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.campo-con-boton {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.campo-con-boton input {
+  min-width: 0;
+}

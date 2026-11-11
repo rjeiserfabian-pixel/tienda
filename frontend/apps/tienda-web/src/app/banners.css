@@ -1,0 +1,179 @@
+/* Carrusel de banners del inicio. El alto lo fija aspect-ratio: no hay saltos al cargar. */
+.banner-carrusel-caja {
+  margin-top: 16px;
+}
+
+.banner-carrusel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--surface-2);
+  box-shadow: 0 14px 40px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.banner-pista {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.banner-pista::-webkit-scrollbar {
+  display: none;
+}
+
+.banner-pista:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: -3px;
+}
+
+.banner-diapositiva {
+  position: relative;
+  display: block;
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  aspect-ratio: 8 / 3;
+  color: #fff;
+}
+
+.banner-carrusel[data-movil='cuadrada'] .banner-diapositiva {
+  aspect-ratio: 1 / 1;
+}
+
+@media (min-width: 768px) {
+  .banner-carrusel[data-movil='cuadrada'] .banner-diapositiva {
+    aspect-ratio: 8 / 3;
+  }
+}
+
+.banner-diapositiva picture,
+.banner-diapositiva img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.banner-diapositiva img {
+  object-fit: cover;
+  user-select: none;
+}
+
+/* El texto va sobre un degradado en la parte de abajo: se lee con cualquier imagen. */
+.banner-texto {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  padding: 44px clamp(16px, 4vw, 44px) clamp(16px, 3vw, 30px);
+  background: linear-gradient(to top, rgb(5 8 16 / 78%), rgb(5 8 16 / 0%));
+}
+
+.banner-texto h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(20px, 3.4vw, 40px);
+  line-height: 1.1;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 40%);
+}
+
+.banner-texto p {
+  margin: 0;
+  max-width: 52ch;
+  color: #e8edf6;
+  font-size: clamp(13.5px, 1.6vw, 18px);
+}
+
+.banner-texto .boton {
+  margin-top: 4px;
+}
+
+.banner-flecha {
+  position: absolute;
+  top: 50%;
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 92%);
+  color: #0f1522;
+  box-shadow: var(--sombra);
+}
+
+.banner-flecha:hover {
+  background: #fff;
+}
+
+.banner-flecha.anterior {
+  left: 12px;
+}
+
+.banner-flecha.siguiente {
+  right: 12px;
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .banner-flecha {
+    display: grid;
+  }
+}
+
+.banner-controles {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.banner-puntos {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* El punto es pequeño a la vista pero el botón mide 24 px para tocarlo cómodo. */
+.banner-puntos button {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.banner-puntos button::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 55%);
+  transition: background 0.2s, inset 0.2s;
+}
+
+.banner-puntos button[aria-current='true']::after {
+  inset: 6px;
+  background: #fff;
+}
+
+.banner-pausa {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgb(15 21 34 / 60%);
+  color: #fff;
+  font-size: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-pista {
+    scroll-behavior: auto;
+  }
+}

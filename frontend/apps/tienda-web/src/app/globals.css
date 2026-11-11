@@ -1,0 +1,386 @@
+/*
+  Sistema de diseño de la tienda.
+  Idea: una tienda premium y rápida: cabecera y portada oscuras con brillo azul, contenido claro con
+  mucho aire, fotos grandes sobre fondo blanco y un color de acento (azul por defecto; el negocio puede
+  cambiarlo en el panel) para lo que invita a actuar. Los brillos son degradados CSS (casi no pesan).
+  Mobile-first: todo parte del celular y crece. Modo claro y oscuro según el dispositivo.
+*/
+:root {
+  --bg: #f2f5fb;
+  --surface: #ffffff;
+  --surface-2: #e8eef9;
+  --ink: #0b1330;
+  --ink-soft: #44506b;
+  --ink-tenue: #66728c;
+  --line: #d9e1f0;
+  --accent: #1d63f0;
+  --accent-hover: #1650c8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e6eefe;
+  --navy: #070d24;
+  --navy-2: #0f1e55;
+  --navy-ink: #e8eeff;
+  --ok: #0e7a55;
+  --ok-soft: #dcf4ea;
+  --warn: #9a5600;
+  --warn-soft: #fff0d6;
+  --bad: #b42318;
+  --bad-soft: #fdeceb;
+  --radio: 16px;
+  --radio-chico: 10px;
+  --sombra: 0 1px 2px rgb(11 19 48 / 6%), 0 4px 14px rgb(11 19 48 / 7%);
+  --sombra-alta: 0 12px 34px rgb(11 19 48 / 20%);
+  /* Brillos y degradados del acento: se calculan del color elegido, así siguen al color del negocio. */
+  --grad-acento: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 78%, #fff) 0%,
+    var(--accent) 55%,
+    color-mix(in srgb, var(--accent) 80%, #000) 100%
+  );
+  --brillo: 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent);
+  --grad-oscuro: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  --ancho: 1320px;
+  --gutter: clamp(16px, 3vw, 32px);
+  --alto-cabecera: 64px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #070c1e;
+    --surface: #0e1630;
+    --surface-2: #172245;
+    --ink: #e8eeff;
+    --ink-soft: #a9b6d4;
+    --ink-tenue: #8795b8;
+    --line: #213059;
+    --accent: #4c8dff;
+    --accent-hover: #6aa0ff;
+    --accent-ink: #04102e;
+    --accent-soft: #14275a;
+    --navy: #050a1b;
+    --navy-2: #0c1744;
+    --navy-ink: #dfe8ff;
+    --ok: #4cd39a;
+    --ok-soft: #123a2c;
+    --warn: #f2b84b;
+    --warn-soft: #3a2c10;
+    --bad: #ff8d80;
+    --bad-soft: #3a1612;
+    --sombra: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 14px rgb(0 0 0 / 30%);
+    --sombra-alta: 0 12px 34px rgb(0 0 0 / 55%);
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--alto-cabecera) + 16px);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body), 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--f-display), 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Utilidades ---------- */
+.contenedor {
+  width: 100%;
+  max-width: var(--ancho);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sr-solo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.saltar {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.saltar:focus {
+  top: 12px;
+}
+
+/* ---------- Botones ---------- */
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--grad-acento);
+  box-shadow: var(--brillo);
+  color: var(--accent-ink);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    filter 0.15s,
+    transform 0.1s,
+    border-color 0.15s;
+}
+
+.boton:hover {
+  filter: brightness(1.08);
+}
+
+.boton:active {
+  transform: translateY(1px);
+}
+
+.boton[aria-disabled='true'],
+.boton:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.boton.secundario {
+  box-shadow: none;
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.boton.secundario:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+  filter: none;
+}
+
+.boton.fantasma {
+  box-shadow: none;
+  background: transparent;
+  color: var(--ink);
+}
+
+.boton.fantasma:hover {
+  background: var(--surface-2);
+  filter: none;
+}
+
+.boton.whatsapp {
+  box-shadow: none;
+  background: #1faa59;
+  color: #fff;
+}
+
+.boton.whatsapp:hover {
+  background: #168a47;
+  filter: none;
+}
+
+.boton.grande {
+  min-height: 54px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+
+.boton.chico {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* ---------- Etiquetas ---------- */
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.insignia.nuevo {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.insignia.destacado {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.insignia.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.insignia.poco {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.insignia.agotado {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* ---------- Carga ---------- */
+.esqueleto {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radio-chico);
+  background: var(--surface-2);
+}
+
+.esqueleto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent);
+  animation: brillo 1.4s infinite;
+}
+
+@keyframes brillo {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Estructura general ---------- */
+.pagina {
+  min-height: 60vh;
+  padding-block: 20px 56px;
+}
+
+.titulo-pagina {
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 700;
+}
+
+.subtitulo {
+  color: var(--ink-soft);
+}
+
+.estado-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 56px 16px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.estado-vacio h2 {
+  color: var(--ink);
+  font-size: 1.4rem;
+}
+
+.esqueleto-rejilla {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 720px) {
+  .esqueleto-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .esqueleto-rejilla {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

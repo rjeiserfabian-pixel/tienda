@@ -1,0 +1,79 @@
+/* Campos de los maestros: dos columnas, y los largos ocupan todo el ancho */
+.maestro-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+
+.maestro-campos .completo {
+  grid-column: 1 / -1;
+}
+
+@media (width <= 700px) {
+  .maestro-campos {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Importación masiva */
+.import-pasos {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  color: var(--texto-suave);
+  line-height: 1.7;
+}
+
+.import-plantilla {
+  position: static;
+  margin-left: 6px;
+}
+
+.import-archivo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px dashed var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 6%);
+  cursor: pointer;
+}
+
+.import-archivo input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.import-archivo:focus-within {
+  box-shadow: 0 0 0 3px rgb(255 42 26 / 22%);
+}
+
+.import-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.import-resumen li {
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 5%);
+}
+
+.import-resumen li.ok { border-color: #1f9a5c; color: #8ff0bd; }
+.import-resumen li.mal { border-color: #d11a27; color: #ffb4ab; }
+.import-resumen li.aviso { border-color: #d9a21c; color: #ffe099; }
+
+.import-problemas {
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}

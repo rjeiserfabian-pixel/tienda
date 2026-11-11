@@ -1,0 +1,269 @@
+/* Matriz de permisos en dos paneles: módulos | permisos del módulo */
+.matriz {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.matriz-modulos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.matriz-modulos .buscador {
+  min-width: 0;
+  height: 40px;
+}
+
+.matriz-filtros {
+  display: flex;
+  gap: 6px;
+}
+
+.matriz-filtros button {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+}
+
+.matriz-filtros button.activo {
+  border-color: var(--rojo);
+  background: rgb(255 42 26 / 16%);
+  color: #fff;
+}
+
+.matriz-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 460px;
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.matriz-modulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto-suave);
+  text-align: left;
+}
+
+.matriz-modulo:hover {
+  background: rgb(255 255 255 / 5%);
+  color: var(--texto);
+}
+
+.matriz-modulo.activo {
+  border-color: var(--borde-rojo);
+  background: rgb(255 42 26 / 14%);
+  color: #fff;
+}
+
+.matriz-modulo.activo svg {
+  color: var(--rojo);
+}
+
+.matriz-modulo-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matriz-conteo {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #cfd2da;
+}
+
+.matriz-conteo[data-estado='todos'] { background: rgb(31 154 92 / 26%); color: #8ff0bd; }
+.matriz-conteo[data-estado='parcial'] { background: rgb(217 162 28 / 24%); color: #ffe099; }
+
+.matriz-vacio {
+  padding: 18px 8px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.matriz-detalle {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+.matriz-detalle-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px 12px;
+}
+
+.matriz-detalle-cab h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.matriz-detalle-cab p {
+  margin: 2px 0 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.matriz-masivo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.matriz-masivo select {
+  min-width: 190px;
+}
+
+.matriz-barra {
+  height: 4px;
+  margin: 0 18px 6px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 8%);
+}
+
+.matriz-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--rojo);
+  transition: width 0.2s ease;
+}
+
+.matriz-permisos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.matriz-permisos li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--borde);
+  border-left: 3px solid transparent;
+}
+
+.matriz-permisos li[data-activo='si'] {
+  border-left-color: var(--rojo);
+  background: rgb(255 42 26 / 6%);
+}
+
+.matriz-permiso-texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.matriz-permiso-texto small {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.matriz-permisos select {
+  flex: 0 0 210px;
+}
+
+@media (width <= 900px) {
+  .matriz {
+    grid-template-columns: 1fr;
+  }
+
+  .matriz-lista {
+    max-height: 240px;
+  }
+
+  .matriz-permisos li {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .matriz-permisos select {
+    flex-basis: auto;
+  }
+
+  .matriz-masivo {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Submódulos dentro de un módulo (Usuarios, Roles, Empresas…) */
+.matriz-submodulo {
+  margin: 0 14px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.matriz-submodulo-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgb(255 255 255 / 4%);
+}
+
+.matriz-submodulo-cab h5 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.matriz-submodulo-cab .matriz-masivo {
+  margin-left: auto;
+}
+
+.matriz-submodulo-cab .matriz-masivo button {
+  padding: 5px 12px;
+  font-size: 13px;
+}
+
+.matriz-submodulo .matriz-permisos li:first-child {
+  border-top: 0;
+}
+
+.matriz-modulo {
+  text-transform: none;
+}
+
+.matriz-filtros button {
+  white-space: nowrap;
+  padding-inline: 4px;
+}
+
+.matriz-buscar-sub {
+  margin: 4px 14px 14px;
+  height: 40px;
+}

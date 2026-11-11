@@ -1,0 +1,566 @@
+/* Marco del panel: menú lateral, barra superior y área de contenido. Tema oscuro con acento rojo.
+ * En pantallas pequeñas el menú pasa a ser un panel deslizable. */
+.panel {
+  display: grid;
+  grid-template-columns: 17em 1fr;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(60% 40% at 100% 0%, rgb(255 30 20 / 7%), transparent 70%),
+    var(--fondo);
+  font-size: 15px;
+}
+
+/* ---------- Menú lateral ---------- */
+.lateral {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #0c0d11, #08090c);
+  border-right: 1px solid var(--borde-rojo);
+  box-shadow: 4px 0 24px rgb(255 30 20 / 6%);
+  z-index: 30;
+}
+
+.lateral-marca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+
+.lateral-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.lateral-wordmark {
+  font-family: 'Segoe UI Black', 'Arial Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.lateral-wordmark span {
+  color: var(--rojo);
+}
+
+.lateral-organizacion {
+  margin: 0;
+  padding: 0 18px 12px;
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  border-bottom: 1px solid var(--borde);
+}
+
+.lateral-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #343843 transparent;
+}
+
+.lateral-pie {
+  display: grid;
+  gap: 8px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--borde);
+}
+
+.lateral-pie small {
+  color: #7f8492;
+}
+
+.lateral-enlace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.lateral-enlace:hover {
+  color: #fff;
+}
+
+/* Botón para comprimir el menú: una pestaña redonda sobre el borde derecho (solo en pantallas grandes). */
+.lateral-comprimir {
+  position: absolute;
+  top: 26px;
+  right: -14px;
+  z-index: 31;
+  display: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 50%;
+  background: #0c0d11;
+  color: #cfd2da;
+  cursor: pointer;
+}
+
+.lateral-comprimir:hover {
+  background: rgb(255 42 26 / 18%);
+  color: #fff;
+}
+
+@media (min-width: 901px) {
+  .lateral-comprimir {
+    display: grid;
+  }
+
+  .panel {
+    transition: grid-template-columns 0.18s ease;
+  }
+
+  .panel.compacto {
+    grid-template-columns: 4.6em 1fr;
+  }
+
+  .panel.compacto .lateral-marca {
+    justify-content: center;
+    padding: 16px 0 8px;
+  }
+
+  .panel.compacto .lateral-wordmark,
+  .panel.compacto .lateral-organizacion,
+  .panel.compacto .menu-texto,
+  .panel.compacto .menu-flecha,
+  .panel.compacto .menu-sub,
+  .panel.compacto .menu-estado,
+  .panel.compacto .lateral-enlace-texto {
+    display: none;
+  }
+
+  .panel.compacto .lateral-scroll {
+    padding: 12px 8px;
+  }
+
+  .panel.compacto .menu-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .panel.compacto .lateral-pie {
+    justify-items: center;
+    padding: 12px 0 16px;
+  }
+}
+
+/* ---------- Ítems del menú ---------- */
+.menu-lista,
+.menu-sub {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-lista {
+  display: grid;
+  gap: 4px;
+}
+
+.menu-item {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #e3e5eb;
+  font-size: 14.5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu-item:hover:not(.pronto) {
+  background: rgb(255 255 255 / 5%);
+  color: #fff;
+}
+
+.menu-item svg {
+  flex: none;
+  color: #cfd2da;
+}
+
+.menu-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-flecha {
+  margin-left: auto;
+  transition: transform 0.15s;
+}
+
+.menu-flecha.abierta {
+  transform: rotate(180deg);
+}
+
+.menu-item.grupo.contiene-activo {
+  color: #fff;
+}
+
+.menu-item.grupo.contiene-activo svg:first-child {
+  color: var(--rojo);
+}
+
+/* Ítem activo: relleno rojo, como el "Inicio" del diseño */
+.menu-item.activo {
+  background: linear-gradient(180deg, #d4161d, #a30f16);
+  border-color: rgb(255 80 60 / 55%);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 0 18px rgb(255 42 26 / 30%);
+}
+
+.menu-item.activo svg {
+  color: #fff;
+}
+
+.menu-sub {
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 6px 22px;
+  padding-left: 12px;
+  border-left: 1px solid #2c2f38;
+}
+
+.menu-item.nivel-1 {
+  min-height: 38px;
+  font-size: 14px;
+  color: #c4c7d0;
+}
+
+.menu-item.nivel-1.activo {
+  background: rgb(255 42 26 / 16%);
+  border-color: rgb(255 80 60 / 45%);
+  box-shadow: none;
+  color: #fff;
+}
+
+.menu-item.pronto {
+  color: #6f7482;
+  cursor: not-allowed;
+}
+
+.menu-item.pronto svg {
+  color: #5b606d;
+}
+
+.menu-pronto {
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: #1b1e25;
+  font-size: 10.5px;
+  color: #8b909d;
+}
+
+.menu-estado {
+  padding: 8px 12px;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.menu-estado.error {
+  color: #ff8f84;
+}
+
+/* ---------- Barra superior ---------- */
+.panel-contenido {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+  padding: 0 24px;
+  background: rgb(8 9 12 / 92%);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--borde-rojo);
+}
+
+.barra-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.barra-titulo svg {
+  color: #e8e9ee;
+}
+
+.barra-empresas {
+  min-width: 0;
+}
+
+.chips-empresa {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip-empresa {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--superficie-2);
+  color: #d3d6de;
+  font-size: 13.5px;
+}
+
+.chip-empresa.unica {
+  border-color: var(--borde-rojo);
+}
+
+.chip-empresa.activa {
+  border-color: rgb(255 80 60 / 70%);
+  background: rgb(255 42 26 / 18%);
+  color: #fff;
+  font-weight: 600;
+}
+
+.barra-derecha {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
+}
+
+.barra-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #dfe1e8;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.barra-dato svg {
+  color: #cfd2da;
+}
+
+.barra-icono {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #e3e5eb;
+}
+
+.barra-icono:hover:not(:disabled) {
+  background: rgb(255 255 255 / 7%);
+}
+
+.barra-icono:disabled {
+  opacity: 0.4;
+}
+
+.solo-movil {
+  display: none;
+}
+
+/* Menú del usuario */
+.usuario-menu {
+  position: relative;
+}
+
+.usuario-boton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.usuario-boton:hover {
+  background: rgb(255 255 255 / 6%);
+  border-color: transparent;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a3f4b, #1b1e25);
+  border: 1px solid #4a4f5c;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.usuario-datos {
+  display: grid;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.usuario-datos strong {
+  font-size: 13.5px;
+}
+
+.usuario-datos small {
+  color: var(--texto-suave);
+  font-size: 11.5px;
+}
+
+.usuario-desplegable {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 40;
+  min-width: 220px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: var(--superficie);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 60%);
+}
+
+.usuario-desplegable a,
+.usuario-desplegable button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto);
+  text-align: left;
+  text-decoration: none;
+}
+
+.usuario-desplegable a:hover,
+.usuario-desplegable button:hover {
+  background: rgb(255 255 255 / 7%);
+}
+
+.usuario-desplegable .separador {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--borde);
+}
+
+/* ---------- Contenido ---------- */
+.panel-principal {
+  flex: 1;
+  min-width: 0;
+}
+
+.panel-velo {
+  display: none;
+}
+
+/* ---------- Pantallas medianas y pequeñas ---------- */
+@media (max-width: 1180px) {
+  .oculto-medio {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .solo-movil {
+    display: grid;
+  }
+
+  .lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(82vw, 18em);
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+  }
+
+  .lateral.abierto {
+    transform: none;
+  }
+
+  .panel-velo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: rgb(0 0 0 / 65%);
+  }
+
+  .barra-superior {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .barra-derecha {
+    gap: 8px;
+  }
+
+  .usuario-datos,
+  .usuario-boton > svg {
+    display: none;
+  }
+
+  /* El selector de empresa pasa a una segunda fila: en celular también hay que poder cambiarla. */
+  .barra-superior {
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+  }
+
+  .barra-empresas {
+    order: 5;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lateral {
+    transition: none;
+  }
+}

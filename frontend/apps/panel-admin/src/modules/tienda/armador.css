@@ -1,0 +1,164 @@
+/* Pantalla «Arma tu PC» */
+.armador-pagina {
+  display: grid;
+  gap: 16px;
+}
+
+.armador-form {
+  display: grid;
+  gap: 16px;
+}
+
+.armador-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+
+.armador-espacios,
+.armador-reglas,
+.armador-chips {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.armador-espacio {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.armador-espacio-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.armador-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.armador-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.armador-chips button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  line-height: 1;
+}
+
+.armador-vacio {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.armador-espacio-controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.armador-agregar select {
+  min-width: 240px;
+  max-width: 100%;
+}
+
+.armador-max {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.armador-max input {
+  width: 72px;
+}
+
+.armador-regla {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.armador-regla summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.armador-regla-nombre {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 260px;
+}
+
+.armador-regla-cuerpo {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.armador-claves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.armador-clave {
+  display: grid;
+  gap: 4px;
+  font-size: 0.88rem;
+}
+
+.armador-clave select {
+  width: 100%;
+}
+
+.armador-falta {
+  color: var(--advertencia, #b45309);
+}
+
+.armador-etiqueta {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgb(245 158 11 / 18%);
+  color: var(--advertencia, #b45309);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.armador-etiqueta.apagada {
+  background: var(--superficie-2, rgb(128 128 128 / 18%));
+  color: var(--texto-suave);
+}
+
+.armador-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}

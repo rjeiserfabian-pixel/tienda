@@ -1,0 +1,460 @@
+/* Servicio técnico */
+.servicio-equipos {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-equipo-opcion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.servicio-equipo-opcion[aria-checked='true'] {
+  border-color: #d11a27;
+  background: rgb(209 26 39 / 14%);
+}
+
+.servicio-equipo-opcion > span {
+  display: grid;
+  flex: 1;
+}
+
+.servicio-aviso-serie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #d9a21c;
+  border-radius: 10px;
+  background: rgb(217 162 28 / 14%);
+}
+
+.servicio-fichas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-ficha-opcion {
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--superficie);
+}
+
+.servicio-ficha-opcion[aria-pressed='true'] {
+  border-color: #d11a27;
+  background: rgb(209 26 39 / 18%);
+}
+
+.servicio-accesorios {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-accesorios li {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.2fr) 80px minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.servicio-agregar-otro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.servicio-agregar-otro .campo {
+  flex: 1 1 220px;
+}
+
+.servicio-revisiones {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-revision {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(150px, 1fr) minmax(140px, 1.2fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.servicio-revision-falla select {
+  border-color: #d11a27;
+}
+
+.servicio-historial {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-historial li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0 10px 16px;
+  border-left: 2px solid var(--borde);
+}
+
+.servicio-historial li:first-child {
+  border-left-color: #d11a27;
+}
+
+.servicio-cabecera-ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+
+/* Cada dato: título arriba y valor debajo, alineados a la izquierda (sin la sangría que el navegador pone a <dd>) */
+.servicio-cabecera-ficha .gasto-dato {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.servicio-cabecera-ficha dt {
+  color: var(--texto-suave);
+  font-size: 12.5px;
+}
+
+.servicio-cabecera-ficha dd {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Botones de la fila (imprimir, ver): pegados a la derecha y con una separación pequeña */
+.tabla-datos th.servicio-col-acciones,
+.tabla-datos td.servicio-col-acciones {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.tabla-datos td.servicio-col-acciones .accion-icono + .accion-icono {
+  margin-left: 6px;
+}
+
+.servicio-recoge {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.servicio-pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.servicio-pasos + .servicio-pasos {
+  margin-top: 14px;
+}
+
+.aviso-enlace {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.aviso-enlace-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.aviso-enlace-boton {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 80 60 / 45%);
+  border-radius: 8px;
+  background: rgb(255 42 26 / 10%);
+  color: #ff8a7d;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.aviso-enlace-boton:hover {
+  background: rgb(255 42 26 / 20%);
+  color: #fff;
+}
+
+.servicio-texto {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.servicio-aviso-item {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.servicio-lineas {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-lineas li {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(120px, 1fr) 90px 130px auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.servicio-linea-nombre {
+  display: grid;
+  min-width: 0;
+}
+
+.servicio-clave {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.servicio-clave code {
+  padding: 4px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--superficie-2);
+  font-size: 15px;
+}
+
+.servicio-atrasada {
+  color: #ffb4ab;
+}
+
+@media (max-width: 760px) {
+  .servicio-lineas li,
+  .servicio-accesorios li,
+  .servicio-revision {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Impresos: la hoja de ingreso (A4 y ticket) y la etiqueta del equipo */
+.ingreso-qr {
+  display: block;
+  width: 26mm;
+  height: 26mm;
+}
+
+.documento .ingreso-cuerpo {
+  display: grid;
+  gap: 8px;
+}
+
+.documento .ingreso-firmas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 72px;
+  text-align: center;
+}
+
+.documento .ingreso-firmas span {
+  padding-top: 4px;
+  border-top: 1px solid #000;
+}
+
+.documento .ingreso-pie {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.documento .ingreso-condiciones {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-size: 10.5px;
+}
+
+.etiqueta {
+  display: grid;
+  grid-template-columns: 22mm minmax(0, 1fr);
+  gap: 2mm;
+  box-sizing: border-box;
+  width: 100%;
+  color: #000;
+  background: #fff;
+  font: 9px/1.25 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.etiqueta img {
+  display: block;
+  width: 22mm;
+  height: 22mm;
+}
+
+.etiqueta strong {
+  display: block;
+  font-size: 13px;
+}
+
+.etiqueta div {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Tablero del taller */
+.tablero {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tablero-columna {
+  display: grid;
+  flex: 0 0 250px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.tablero-columna[data-vacia='si'] {
+  opacity: 0.55;
+}
+
+.tablero-columna > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tablero-tarjeta {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--superficie-2);
+}
+
+.tablero-tarjeta:hover,
+.tablero-tarjeta:focus-visible {
+  border-color: #d11a27;
+}
+
+.tablero-marcas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.servicio-seccion-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.servicio-comisiones {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.servicio-comision {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 90px auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.campo-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.servicio-interruptores {
+  display: grid;
+  gap: 10px;
+}
+
+.ingreso-qr-bloque {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  max-width: 30mm;
+  text-align: center;
+}
+
+.ingreso-qr-bloque small {
+  font-size: 8px;
+}
+
+.enlace-boton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ff6b5c;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Cada línea del pie del ticket va en su propio renglón */
+.ticket-linea {
+  display: block;
+  margin-top: 2px;
+}
+
+.ticket-firma.ticket-firma-ingreso {
+  margin-top: 48px;
+}

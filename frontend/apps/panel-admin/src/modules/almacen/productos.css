@@ -1,0 +1,371 @@
+/* Productos: ficha, precios y fotos */
+.sin-borde {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.producto-form {
+  display: grid;
+  gap: 18px;
+}
+
+.producto-form .fila-botones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aviso-parecidos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 10px;
+  background: rgb(255 42 26 / 6%);
+  color: var(--texto);
+  font-size: 0.9rem;
+}
+
+.control-grilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.control-stock {
+  max-width: 320px;
+  margin-top: 16px;
+}
+
+.precios-cuadro {
+  max-width: 320px;
+  margin-bottom: 14px;
+}
+
+.tabla-precios input {
+  width: 100%;
+  max-width: 180px;
+}
+
+.precios-nota {
+  margin: 12px 0 0;
+  font-size: 0.88rem;
+}
+
+/* Listado */
+.producto-miniatura {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--superficie-2);
+}
+
+.producto-sub {
+  display: block;
+}
+
+.imagen-vacia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto-suave);
+  background: var(--superficie-2);
+}
+
+/* Fotos */
+.fotos-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.foto-tarjeta {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.foto-tarjeta.principal {
+  border-color: var(--rojo);
+}
+
+.foto-imagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.foto-insignia {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--rojo);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.foto-tarjeta figcaption {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+}
+
+.foto-tarjeta figcaption button {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+}
+
+.foto-tarjeta figcaption button.peligro {
+  flex: 0 0 auto;
+}
+
+.foto-subir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 150px;
+  border: 2px dashed var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 5%);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.foto-subir small {
+  color: var(--texto-suave);
+}
+
+.foto-subir.arrastrando {
+  border-color: var(--rojo);
+  background: rgb(255 42 26 / 12%);
+}
+
+@media (width <= 800px) {
+  .control-grilla {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Atajo «+ Nueva» junto a la etiqueta de un catálogo */
+.mas-rapido {
+  margin-left: 10px;
+  padding: 1px 9px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 999px;
+  background: rgb(255 42 26 / 8%);
+  color: var(--rojo);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.mas-rapido:hover {
+  background: rgb(255 42 26 / 18%);
+}
+
+/* Separación entre la ficha y las fotos del producto ya guardado */
+.producto-form + .panel-tarjeta {
+  margin-top: 18px;
+}
+
+/* Etiquetas de tienda en el listado */
+.producto-etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+/* Fotos que se reordenan */
+.foto-tarjeta[draggable='true'] {
+  cursor: grab;
+}
+
+.foto-tarjeta.destino {
+  border-color: #fff;
+  outline: 2px dashed var(--rojo);
+  outline-offset: 2px;
+}
+
+.foto-orden {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+}
+
+.foto-orden button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgb(7 8 11 / 78%);
+}
+
+/* Especificaciones del producto */
+.espe-secciones {
+  display: grid;
+  gap: 10px;
+}
+
+.espe-seccion {
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.espe-seccion > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.espe-seccion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.espe-seccion > summary::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  margin-left: 4px;
+  border: solid var(--texto-suave);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.espe-seccion[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.espe-seccion > summary small {
+  margin-left: auto;
+  color: var(--texto-suave);
+  font-weight: 400;
+}
+
+.espe-seccion > .maestro-campos {
+  padding: 4px 16px 6px;
+}
+
+/* Cada dato va en su envoltorio solo para poder encontrarlo; no cambia la cuadrícula. */
+.espe-dato {
+  display: contents;
+}
+
+.espe-error-chip {
+  padding: 2px 10px;
+  border: 1px solid rgb(255 90 74 / 60%);
+  border-radius: 999px;
+  background: rgb(255 90 74 / 14%);
+  color: #ff8d80;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.espe-aviso {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid rgb(245 185 66 / 40%);
+  border-radius: 10px;
+  background: rgb(245 185 66 / 8%);
+  color: #f7cd7a;
+  font-size: 0.9rem;
+}
+
+/* Sección «Para la tienda» */
+.tienda-publicar {
+  display: grid;
+  gap: 8px;
+  max-width: 520px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 5%);
+}
+
+.tienda-motivo {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.tienda-etiquetas {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.tienda-puntos {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0 18px;
+}
+
+.tienda-puntos-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.tienda-puntos ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tienda-puntos li {
+  display: flex;
+  gap: 8px;
+}
+
+.tienda-puntos li input {
+  flex: 1;
+  min-width: 0;
+}
+
+.tienda-puntos > button {
+  justify-self: start;
+}
+
+.tienda-medidas {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (width <= 800px) {
+  .tienda-etiquetas,
+  .tienda-medidas {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,202 @@
+/* Pantalla «Ofertas y banners» de la tienda. */
+.ofertas-pagina {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.ofertas-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  justify-content: space-between;
+}
+
+.ofertas-nota {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.ofertas-pestanas {
+  justify-self: start;
+}
+
+.tabla-ofertas .sub-texto {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+.tabla-ofertas .celda-acciones {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Buscar y elegir el producto de la oferta */
+.oferta-buscador {
+  display: grid;
+  gap: 8px;
+}
+
+.oferta-buscador input {
+  width: 100%;
+}
+
+.oferta-resultados {
+  display: grid;
+  max-height: 220px;
+  margin: 0;
+  padding: 4px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--borde, rgb(255 255 255 / 14%));
+  border-radius: 10px;
+}
+
+.oferta-resultados li > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.oferta-resultados li > button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 7%);
+}
+
+.oferta-resultados li > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.oferta-resultados small {
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.oferta-resultados .celda-suave {
+  padding: 8px 10px;
+}
+
+.oferta-producto-elegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--borde, rgb(255 255 255 / 14%));
+  border-radius: 10px;
+}
+
+.oferta-producto-elegido small {
+  display: block;
+  opacity: 0.7;
+}
+
+/* Banners */
+.banners-lista {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+.banner-tarjeta {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--borde, rgb(255 255 255 / 14%));
+  border-radius: 14px;
+}
+
+.banner-tarjeta[data-apagado] {
+  opacity: 0.65;
+}
+
+.banner-miniatura,
+.banner-vista {
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 5%);
+}
+
+.banner-miniatura {
+  aspect-ratio: 8 / 3;
+}
+
+.banner-miniatura img,
+.banner-vista img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner-vista {
+  aspect-ratio: 8 / 3;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.banner-vista-movil {
+  aspect-ratio: 1;
+  max-width: 180px;
+}
+
+.banner-cuerpo {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px 14px;
+}
+
+.banner-cuerpo p {
+  margin: 0;
+}
+
+.banner-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.banner-titulo h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.banner-imagenes {
+  display: grid;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--borde, rgb(255 255 255 / 14%));
+  border-radius: 12px;
+}
+
+.banner-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ofertas-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 36px 16px;
+  text-align: center;
+  border: 1px dashed var(--borde, rgb(255 255 255 / 20%));
+  border-radius: 14px;
+}
+
+.ofertas-vacio h3,
+.ofertas-vacio p {
+  margin: 0;
+}

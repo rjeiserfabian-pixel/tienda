@@ -1,0 +1,63 @@
+/* Pantalla «IGV e impuestos» */
+.igv-pagina {
+  display: grid;
+  gap: 16px;
+}
+
+.igv-explicacion {
+  margin: 4px 0 14px;
+  padding: 12px 16px;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+  color: var(--texto-suave);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.igv-explicacion p,
+.igv-explicacion ul {
+  margin: 0;
+}
+
+.igv-explicacion ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+}
+
+.igv-explicacion strong {
+  color: var(--texto);
+}
+
+.igv-subtitulo {
+  margin: 18px 0 2px;
+}
+
+.igv-fila-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.igv-fila-campos > button {
+  height: 46px;
+  margin-bottom: 12px;
+}
+
+.sin-borde {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.igv-aviso {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #d9a21c;
+  border-radius: 10px;
+  background: rgb(217 162 28 / 14%);
+  font-size: 13.5px;
+  line-height: 1.45;
+}

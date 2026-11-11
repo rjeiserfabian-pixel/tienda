@@ -1,0 +1,82 @@
+.logo-empresa {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Marco oscuro del sistema; el logo va sobre una placa clara, como saldrá en el comprobante. */
+.logo-vista,
+.logo-subir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 240px;
+  height: 140px;
+  padding: 14px;
+  border-radius: 12px;
+  color: var(--texto);
+}
+
+.logo-vista {
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+}
+
+.logo-placa {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f4f4f6;
+}
+
+.logo-imagen {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.logo-subir {
+  border: 2px dashed var(--borde-rojo);
+  background: rgb(255 42 26 / 5%);
+  cursor: pointer;
+}
+
+.logo-subir small {
+  color: var(--texto-suave);
+}
+
+.logo-subir.arrastrando {
+  border-color: var(--rojo);
+  background: rgb(255 42 26 / 12%);
+}
+
+.logo-subir:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.logo-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.campo-casilla {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 4px 0 16px;
+  cursor: pointer;
+}
+
+.campo-casilla small {
+  display: block;
+  color: var(--texto-suave);
+  margin-top: 2px;
+}

@@ -1,0 +1,452 @@
+/* Cuadros de diálogo y campos de formulario premium. */
+dialog.modal {
+  width: calc(100% - 32px);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: var(--texto);
+}
+
+dialog.modal::backdrop {
+  background: rgb(0 0 0 / 74%);
+  backdrop-filter: blur(3px);
+}
+
+.modal-brillo {
+  filter: drop-shadow(0 0 22px rgb(255 40 20 / 50%));
+}
+
+.modal-borde,
+.modal-cuerpo {
+  --corte: 26px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--corte)) 0,
+    100% var(--corte),
+    100% 100%,
+    var(--corte) 100%,
+    0 calc(100% - var(--corte))
+  );
+}
+
+.modal-borde {
+  padding: 2px;
+  background: linear-gradient(135deg, #ff5a3c, var(--rojo) 40%, #b3000d);
+}
+
+.modal-cuerpo {
+  --corte: 25px;
+  box-sizing: border-box;
+  max-height: calc(100dvh - 40px);
+  padding: 20px 26px 24px;
+  overflow-y: auto;
+  background:
+    radial-gradient(80% 50% at 100% 0%, rgb(255 30 20 / 9%), transparent 70%),
+    #0a0b0f;
+  scrollbar-width: thin;
+  scrollbar-color: #343843 transparent;
+}
+
+/* ---------- Cabecera ---------- */
+.modal-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.modal-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: #0d0e12;
+}
+
+.modal-marca b {
+  font-family: 'Segoe UI Black', 'Arial Black', system-ui, sans-serif;
+  font-style: italic;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.modal-marca i {
+  color: var(--rojo);
+  font-style: inherit;
+}
+
+.modal-titulos {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-titulos h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.modal-titulos p {
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+.modal-cerrar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #4a4f5c;
+  border-radius: 10px;
+  background: #11131a;
+  color: #fff;
+}
+
+/* ---------- Disposición de formularios en el diálogo ---------- */
+.modal-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 18px;
+}
+
+.modal-panel {
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 2%);
+}
+
+.modal-panel h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.modal-fila {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.modal-aviso {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 6%);
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.modal-aviso strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--texto);
+  font-size: 13.5px;
+}
+
+.modal-aviso svg {
+  flex: none;
+  color: var(--rojo);
+}
+
+.modal-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-pie button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 10px;
+}
+
+/* ---------- Campos ---------- */
+.campo label {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.campo .requerido {
+  margin-left: 3px;
+  color: var(--rojo);
+}
+
+.campo-icono {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.campo-icono > .icono-izq {
+  position: absolute;
+  left: 14px;
+  color: #cfd2da;
+  pointer-events: none;
+}
+
+.campo-icono > .icono-der {
+  position: absolute;
+  right: 14px;
+  color: #cfd2da;
+  pointer-events: none;
+}
+
+.campo-icono input,
+.campo-icono select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 44px;
+  border-radius: 10px;
+}
+
+.campo-icono select {
+  appearance: none;
+  padding-right: 40px;
+}
+
+.campo-icono .boton-ojo {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #cfd2da;
+}
+
+.campo-icono:has(.boton-ojo) input {
+  padding-right: 46px;
+}
+
+.campo-contador {
+  align-self: flex-end;
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.campo input:not([type='checkbox']),
+.campo select {
+  min-height: 42px;
+}
+
+/* ---------- Interruptor y casillas ---------- */
+.interruptor {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.interruptor:hover:not(:disabled) {
+  background: transparent;
+}
+
+.interruptor-pista {
+  position: relative;
+  flex: none;
+  width: 54px;
+  height: 30px;
+  border: 1px solid #4a4f5c;
+  border-radius: 999px;
+  background: #1a1d24;
+  transition: background 0.15s;
+}
+
+.interruptor-pista::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #cfd2da;
+  transition: transform 0.15s;
+}
+
+.interruptor[aria-checked='true'] .interruptor-pista {
+  border-color: #ff3b28;
+  background: linear-gradient(180deg, #ff3b28, var(--rojo-fuerte));
+  box-shadow: 0 0 14px rgb(255 42 26 / 40%);
+}
+
+.interruptor[aria-checked='true'] .interruptor-pista::after {
+  transform: translateX(24px);
+  background: #fff;
+}
+
+.interruptor strong {
+  display: block;
+  font-size: 15px;
+}
+
+.interruptor small {
+  color: var(--texto-suave);
+  font-size: 12px;
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.casilla input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid #4a4f5c;
+  border-radius: 6px;
+  background: var(--superficie-2);
+  cursor: pointer;
+}
+
+.casilla input:checked {
+  border-color: var(--rojo);
+  background: var(--rojo);
+}
+
+.casilla input:checked::after {
+  content: '';
+  width: 6px;
+  height: 11px;
+  margin-top: -2px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.casilla input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ---------- Avatar grande de vista previa ---------- */
+.avatar-grande {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.avatar-aro {
+  display: grid;
+  place-items: center;
+  width: 118px;
+  height: 118px;
+  border: 3px solid var(--rojo);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #2a2d35, #11131a);
+  box-shadow: 0 0 22px rgb(255 42 26 / 45%);
+  color: #fff;
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.avatar-aro svg {
+  color: #e8e9ee;
+}
+
+/* ---------- Pantallas pequeñas ---------- */
+@media (max-width: 760px) {
+  .modal-columnas,
+  .modal-fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .modal-marca b {
+    display: none;
+  }
+
+  .modal-cuerpo {
+    padding: 16px 16px 20px;
+  }
+
+  .modal-pie {
+    flex-direction: column-reverse;
+  }
+
+  .modal-pie button {
+    justify-content: center;
+  }
+}
+
+/* Contraseña temporal entregada por un administrador */
+.clave-temporal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 4px;
+  padding: 14px 16px;
+  border: 1px dashed var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 8%);
+}
+
+.clave-temporal code {
+  flex: 1;
+  min-width: 0;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* Botón «Consultar» (RENIEC/SUNAT) dentro del campo de documento */
+.campo-icono .boton-consultar {
+  position: absolute;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.campo-icono:has(.boton-consultar) input {
+  padding-right: 128px;
+}
+
+/* Campo de texto largo (sin icono) */
+.campo textarea {
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  line-height: 1.4;
+  resize: vertical;
+}

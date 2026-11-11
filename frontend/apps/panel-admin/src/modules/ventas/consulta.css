@@ -1,0 +1,191 @@
+/* Consulta rápida de precios (vendedor) */
+.consulta-buscador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.consulta-buscador:focus-within {
+  box-shadow: 0 0 0 3px rgb(255 42 26 / 22%);
+}
+
+.consulta-buscador input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  outline: none;
+}
+
+.consulta-inicio {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 48px 20px;
+  border: 1px dashed var(--borde);
+  border-radius: 14px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.consulta-inicio h3,
+.consulta-inicio p {
+  margin: 0;
+}
+
+.consulta-resultados {
+  display: grid;
+  gap: 14px;
+}
+
+.consulta-ficha {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) minmax(240px, 0.8fr);
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.consulta-foto {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgb(255 255 255 / 4%);
+}
+
+.consulta-datos {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.consulta-datos h3,
+.consulta-datos p {
+  margin: 0;
+}
+
+.consulta-precio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.consulta-precio strong {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.consulta-precio span {
+  color: var(--texto-suave);
+}
+
+.consulta-listas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consulta-listas li {
+  padding: 4px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.consulta-listas span {
+  color: var(--texto-suave);
+}
+
+.consulta-stock {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.consulta-stock ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consulta-stock li {
+  display: grid;
+  gap: 4px;
+  font-size: 13.5px;
+}
+
+.consulta-almacen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.consulta-presentaciones {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consulta-presentaciones li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.consulta-presentaciones li.escaneada {
+  border-color: #1f9a5c;
+  background: rgb(31 154 92 / 14%);
+}
+
+.consulta-presentaciones li > span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.consulta-equivale {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+@media (width <= 900px) {
+  .consulta-ficha {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+
+  .consulta-foto {
+    width: 90px;
+    height: 90px;
+  }
+
+  .consulta-stock {
+    grid-column: 1 / -1;
+  }
+}

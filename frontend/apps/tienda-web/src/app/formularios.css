@@ -1,0 +1,254 @@
+/* Formularios de la tienda (cuenta, direcciones, compra): campos, ayudas, errores y avisos. */
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-fila {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 560px) {
+  .form-fila.dos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-fila.tres {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.campo {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.campo > label,
+.campo-etiqueta {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.campo-opcional {
+  font-weight: 400;
+  color: var(--ink-tenue);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px; /* 16px evita que el celular acerque la pantalla al tocar el campo */
+}
+
+.campo input:focus-visible,
+.campo select:focus-visible,
+.campo textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.campo input[aria-invalid='true'],
+.campo select[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+
+.campo-ayuda {
+  font-size: 13px;
+  color: var(--ink-tenue);
+}
+
+.campo-error {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--bad);
+}
+
+.campo-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+
+.campo-check input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin-top: 2px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+/* Contraseña con botón «mostrar» */
+.campo-clave {
+  position: relative;
+}
+
+.campo-clave input {
+  padding-right: 84px;
+}
+
+.campo-clave button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+/* Avisos */
+.alerta {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--radio-chico);
+  font-size: 14.5px;
+  line-height: 1.45;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+.alerta.error {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.alerta.ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.alerta.aviso {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.alerta svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.form-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.form-acciones .boton {
+  flex: 1 1 160px;
+}
+
+@media (min-width: 560px) {
+  .form-acciones .boton {
+    flex: 0 0 auto;
+  }
+}
+
+/* Pantallas de una sola tarjeta centrada (ingresar, registro, recuperar…) */
+.tarjeta-centrada {
+  width: min(100% - 2 * var(--gutter), 460px);
+  margin: 32px auto 56px;
+  padding: clamp(20px, 5vw, 32px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.tarjeta-centrada h1 {
+  font-size: clamp(24px, 5vw, 30px);
+  margin-bottom: 6px;
+}
+
+.tarjeta-centrada .sub {
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+
+.tarjeta-centrada .pie-tarjeta {
+  margin-top: 18px;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+}
+
+.tarjeta-centrada .pie-tarjeta a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.enlace {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Cabecera: cuenta y carrito */
+.cab-cuenta,
+.cab-carrito {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: #fff;
+}
+
+.cab-cuenta:hover,
+.cab-carrito:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+.cab-cuenta-texto {
+  display: none;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .cab-cuenta-texto {
+    display: inline;
+  }
+}
+
+.cab-carrito-n {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--navy);
+}

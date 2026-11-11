@@ -1,0 +1,129 @@
+/* Pantalla «Pagos en línea» */
+.pagos-pagina {
+  display: grid;
+  gap: 16px;
+}
+
+.pagos-pasos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.pagos-pasos li {
+  position: relative;
+  padding: 12px 14px 12px 48px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+  counter-increment: paso;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.pagos-pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primario, #2563eb);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.pagos-form {
+  display: grid;
+  gap: 16px;
+}
+
+.pagos-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.pagos-estado {
+  display: grid;
+  gap: 10px;
+}
+
+.pagos-modos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.pagos-modo {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  text-align: left;
+  background: var(--superficie);
+  cursor: pointer;
+}
+
+.pagos-modo[aria-pressed='true'] {
+  border-color: var(--primario, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primario, #2563eb) 25%, transparent);
+}
+
+.pagos-modo small {
+  color: var(--texto-suave, #64748b);
+}
+
+.pagos-alerta {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef3c7;
+  color: #78350f;
+  font-size: 0.9rem;
+}
+
+.pagos-alerta.peligro {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+
+.pagos-alerta.ok {
+  background: #dcfce7;
+  color: #14532d;
+}
+
+.pagos-secreta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagos-secreta input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.pagos-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pagos-resultado {
+  margin: 0;
+}

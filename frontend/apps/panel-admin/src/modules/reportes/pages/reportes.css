@@ -1,0 +1,15 @@
+.centro-reportes { display: grid; gap: 18px; padding: 22px 24px 32px; }
+.buscador-reportes {
+  display: flex; align-items: center; gap: 8px; min-width: 240px;
+  padding: 8px 12px; border: 1px solid var(--borde); border-radius: 10px;
+}
+.buscador-reportes input { flex: 1; border: 0; background: transparent; color: inherit; outline: none; }
+.reportes-grupo h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.reportes-rejilla { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.reporte-tarjeta {
+  display: grid; gap: 6px; padding: 14px 16px; text-decoration: none; color: inherit;
+  border: 1px solid var(--borde); border-radius: 12px;
+}
+.reporte-tarjeta:hover, .reporte-tarjeta:focus-visible { border-color: var(--rojo); }
+.reporte-tarjeta span { color: var(--texto-suave); font-size: 13px; }
+@media (max-width: 600px) { .centro-reportes { padding: 16px; } .buscador-reportes { min-width: 0; width: 100%; } }

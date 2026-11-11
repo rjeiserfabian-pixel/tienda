@@ -1,0 +1,66 @@
+/* Tipo de cambio: tarjetas de lo vigente y filtros */
+.tc-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.tc-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--borde);
+  border-left: 4px solid #4a4f5c;
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.tc-tarjeta[data-tono='azul'] { border-left-color: #2f6fe0; }
+.tc-tarjeta[data-tono='morado'] { border-left-color: #7a3fe0; }
+.tc-tarjeta[data-tono='cian'] { border-left-color: #1fa0a8; }
+
+.tc-tarjeta h3 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--texto-suave);
+}
+
+.tc-valores {
+  display: flex;
+  gap: 28px;
+  margin: 0;
+}
+
+.tc-valores span {
+  display: flex;
+  flex-direction: column;
+}
+
+.tc-valores small {
+  color: var(--texto-suave);
+}
+
+.tc-valores strong {
+  font-size: 26px;
+}
+
+.tc-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.tc-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.tc-filtro select,
+.tc-filtro input {
+  height: 40px;
+  min-width: 170px;
+}

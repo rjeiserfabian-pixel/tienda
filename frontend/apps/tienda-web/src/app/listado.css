@@ -1,0 +1,617 @@
+/* Listados: categoría, familia, marca y búsqueda (prefijo lis-) */
+
+.lis-cabecera {
+  margin-bottom: 16px;
+}
+
+.lis-sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-pildora {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lis-pildora small {
+  color: var(--ink-tenue);
+  font-weight: 500;
+}
+
+.lis-pildora:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Estructura: una columna en celular; con columna de filtros desde laptop */
+.lis-cuerpo {
+  display: block;
+}
+
+.lis-resultados {
+  min-width: 0;
+}
+
+.lis-lateral {
+  display: none;
+}
+
+.lis-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.lis-cantidad {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.lis-cantidad strong {
+  color: var(--ink);
+}
+
+.lis-barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 260px;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.lis-btn-filtros {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lis-btn-filtros:hover {
+  border-color: var(--accent);
+}
+
+.lis-contador {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.lis-ordenar select {
+  min-height: 42px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.lis-ordenar {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lis-ordenar select {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* En celular la etiqueta se oculta a la vista (queda para lectores de pantalla) */
+.lis-ordenar label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.lis .migas ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-btn-filtros {
+  flex: none;
+}
+
+.lis-btn-filtros svg {
+  flex: none;
+}
+
+/* Chips de filtros aplicados */
+.lis-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 14px;
+}
+
+.lis-chips > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lis-chip:hover {
+  border-color: var(--accent);
+}
+
+.lis-limpiar {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Rejilla de productos: sin saltos de diseño, las tarjetas reservan su alto */
+.lis-rejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-rejilla > li {
+  display: flex;
+  min-width: 0;
+}
+
+.lis-rejilla > li > * {
+  width: 100%;
+}
+
+.lis-vacio {
+  padding: 40px 16px;
+}
+
+.lis-vacio .lis-sugerencias {
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Paginación */
+.lis-paginas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 28px 0 8px;
+}
+
+.lis-pag-numeros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-pag {
+  display: inline-grid;
+  place-items: center;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lis-pag:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.lis-pag.actual {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.lis-pag.inactiva {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.lis-pag-flecha {
+  gap: 4px;
+}
+
+.lis-pag-puntos {
+  color: var(--ink-tenue);
+}
+
+/* Filtros (contenido compartido entre la columna y el cajón) */
+.lis-filtros {
+  display: grid;
+  gap: 18px;
+}
+
+.lis-grupo {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.lis-grupo legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-family: var(--fuente-titulos, inherit);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.lis-grupo ul,
+.lis-detalle ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lis-grupo ul {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.lis-casilla {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.lis-casilla:hover {
+  background: var(--surface-2);
+}
+
+.lis-casilla input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.lis-casilla-texto {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+.lis-casilla-cantidad {
+  color: var(--ink-tenue);
+  font-size: 0.8125rem;
+}
+
+.lis-precio {
+  display: grid;
+  gap: 8px;
+}
+
+.lis-precio-campos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.lis-precio input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.lis-precio input[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+
+.lis-error {
+  margin: 0;
+  color: var(--bad);
+  font-size: 0.8125rem;
+}
+
+.lis-ayuda {
+  margin: 0;
+  color: var(--ink-tenue);
+  font-size: 0.8125rem;
+}
+
+.lis-detalle {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.lis-detalle summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.lis-detalle summary::-webkit-details-marker {
+  display: none;
+}
+
+.lis-detalle summary > span:first-child {
+  flex: 1;
+}
+
+.lis-detalle summary svg {
+  transition: transform 0.2s;
+}
+
+.lis-detalle[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.lis-detalle ul {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+/* Barra de progreso al cambiar filtros */
+.lis-progreso {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 80;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: lis-avance 1s linear infinite;
+}
+
+@keyframes lis-avance {
+  from {
+    background-position: -50% 0;
+  }
+
+  to {
+    background-position: 150% 0;
+  }
+}
+
+/* Cajón de filtros (celular y tablet) */
+.lis-cajon {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 88dvh;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--surface);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.lis-cajon::backdrop {
+  background: rgb(5 8 15 / 55%);
+}
+
+.lis-cajon-caja {
+  display: flex;
+  flex-direction: column;
+  max-height: 88dvh;
+}
+
+.lis-cajon-cabecera,
+.lis-cajon-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.lis-cajon-cabecera {
+  border-bottom: 1px solid var(--line);
+}
+
+.lis-cajon-cabecera h2,
+.lis-lateral-cabecera h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.lis-cajon-cuerpo {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  overscroll-behavior: contain;
+}
+
+.lis-cajon-pie {
+  border-top: 1px solid var(--line);
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.lis-cajon-pie .boton:last-child {
+  flex: 1;
+}
+
+/* Tablet en adelante: rejilla de 3 */
+@media (min-width: 720px) {
+  .lis-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .lis-barra-acciones {
+    flex: 0 1 auto;
+  }
+
+  .lis-ordenar {
+    flex: 0 1 auto;
+  }
+
+  .lis-ordenar select {
+    width: auto;
+  }
+
+  .lis-ordenar label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+
+  .lis-cajon {
+    width: min(480px, 100%);
+    max-height: 88dvh;
+    margin: auto;
+    border-radius: 18px;
+  }
+}
+
+/* Laptop: columna de filtros fija a la izquierda */
+@media (min-width: 1024px) {
+  .lis-cuerpo {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+  }
+
+  .lis-lateral {
+    position: sticky;
+    top: calc(var(--alto-cabecera) + 76px);
+    display: block;
+    max-height: calc(100dvh - var(--alto-cabecera) - 92px);
+    overflow-y: auto;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radio);
+    background: var(--surface);
+    overscroll-behavior: contain;
+  }
+
+  .lis-lateral-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .lis-btn-filtros,
+  .lis-cajon {
+    display: none;
+  }
+}
+
+@media (min-width: 1500px) {
+  .lis-rejilla {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1800px) {
+  .lis-cuerpo {
+    grid-template-columns: 290px minmax(0, 1fr);
+  }
+
+  .lis-rejilla {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lis-progreso {
+    animation: none;
+  }
+
+  .lis-detalle summary svg {
+    transition: none;
+  }
+}

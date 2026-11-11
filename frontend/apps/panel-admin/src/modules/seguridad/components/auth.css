@@ -1,0 +1,653 @@
+/* Pantallas de acceso (login, segundo paso, recuperación). Tema oscuro con acento rojo.
+ *
+ * TODO el tamaño se expresa en `em` a partir del `font-size` de `.auth`, que se calcula con el
+ * ancho Y el alto de la ventana: así el diseño completo cabe en pantalla a zoom 100 % en
+ * laptops, monitores grandes y celulares, sin recortarse. (Referencia: 16 px = 1536×1024.) */
+.auth {
+  --rojo: #ff2a1a;
+  --rojo-fuerte: #e50914;
+  --fondo: #050507;
+  --campo: #15171c;
+  --borde-campo: #3a3d46;
+  --texto: #f4f4f7;
+  --texto-suave: #b7bac4;
+
+  font-size: clamp(12px, min(1.05vw, 1.75vh), 20px);
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 40em);
+  align-items: center;
+  gap: 2.5em;
+  padding: 2em 2.6em;
+  box-sizing: border-box;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+/* Resplandores y franjas rojas del fondo */
+.auth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 45% at 8% 105%, rgb(255 30 20 / 38%), transparent 70%),
+    radial-gradient(45% 40% at 95% 0%, rgb(255 30 20 / 26%), transparent 70%),
+    radial-gradient(35% 35% at 60% 55%, rgb(40 60 160 / 18%), transparent 70%),
+    linear-gradient(115deg, transparent 0 8%, rgb(255 40 20 / 22%) 8.3% 9%, transparent 9.3% 100%);
+}
+
+/* ---------- Columna de marca ---------- */
+.auth-marca {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  min-height: 0;
+}
+
+.auth-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 1.4em;
+}
+
+.auth-cabecera > svg {
+  flex: none;
+  width: 6em;
+  height: auto;
+}
+
+.auth-wordmark {
+  margin: 0;
+  font-family: 'Segoe UI Black', 'Arial Black', system-ui, sans-serif;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 6.3em;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #ffffff 15%, #9ea3ad 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0.04em 0.14em rgb(0 0 0 / 55%));
+}
+
+.auth-wordmark .acento {
+  background: linear-gradient(180deg, #ff4b36, #c3000f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.auth-lema {
+  margin: 0.25em 0 0;
+  font-size: 1.05em;
+  letter-spacing: 0.04em;
+  color: var(--texto);
+}
+
+.auth-categorias {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1.35em;
+  width: max-content;
+}
+
+.auth-categorias li {
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  font-size: 1.1em;
+  color: #dcdee6;
+}
+
+.auth-categorias svg {
+  flex: none;
+  width: 2.1em;
+  height: 2.1em;
+  color: #f1f2f6;
+}
+
+.auth-hero {
+  position: absolute;
+  right: 7%;
+  bottom: 0;
+  height: 86%;
+  max-width: 64%;
+  aspect-ratio: 556 / 782;
+  object-fit: cover;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+  /* Más luz y color: la foto original es oscura y los difuminados la apagaban aún más. */
+  filter: brightness(1.26) saturate(1.35) contrast(1.06);
+  /* Fundido REDONDEADO: un óvalo grande oculta solo las esquinas (que son fondo), y dos fundidos
+   * finos suavizan los lados. Así arriba y abajo quedan expuestos y no se ve el recuadro. */
+  -webkit-mask-image:
+    radial-gradient(ellipse 74% 68% at 50% 50%, #000 72%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-composite: source-in, source-in;
+  mask-image:
+    radial-gradient(ellipse 74% 68% at 50% 50%, #000 72%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-composite: intersect, intersect;
+}
+
+.auth-eslogan {
+  position: absolute;
+  left: 0;
+  bottom: 0.5em;
+  z-index: 2;
+  margin: 0;
+  transform: rotate(-6deg);
+  transform-origin: left bottom;
+  font-family: 'Segoe Script', 'Brush Script MT', cursive;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 2.7em;
+  line-height: 1.05;
+  color: #fff;
+  text-shadow: 0 0.06em 0.3em rgb(0 0 0 / 70%);
+}
+
+.auth-eslogan span {
+  display: block;
+  color: var(--rojo);
+  padding-left: 1.4em;
+}
+
+.auth-eslogan svg {
+  display: block;
+  margin: 0.1em 0 0 1em;
+  width: 7em;
+  height: 0.35em;
+  color: var(--rojo);
+}
+
+/* ---------- Tarjeta con borde brillante y esquinas cortadas ---------- */
+.auth-brillo {
+  filter: drop-shadow(0 0 1.4em rgb(255 40 20 / 55%));
+  width: 100%;
+}
+
+.auth-borde,
+.auth-tarjeta {
+  --corte: 1.9em;
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--corte)) 0,
+    100% var(--corte),
+    100% 100%,
+    var(--corte) 100%,
+    0 calc(100% - var(--corte))
+  );
+}
+
+.auth-borde {
+  padding: 0.13em;
+  background: linear-gradient(135deg, #ff5a3c, var(--rojo) 40%, #b3000d);
+}
+
+.auth-tarjeta {
+  --corte: 1.8em;
+  box-sizing: border-box;
+  padding: 3em 3.2em;
+  background:
+    radial-gradient(90% 60% at 100% 0%, rgb(255 30 20 / 9%), transparent 70%),
+    #0a0b0f;
+}
+
+.auth-tarjeta h1 {
+  margin: 0 0 0.2em;
+  font-size: 3.5em;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.auth-subtitulo {
+  margin: 0 0 1.6em;
+  color: #e4e5ea;
+  font-size: 1.2em;
+  line-height: 1.45;
+}
+
+/* ---------- Campos ---------- */
+.auth-campo {
+  margin-bottom: 1.2em;
+}
+
+.auth-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 3.9em;
+  border: 1px solid var(--borde-campo);
+  border-radius: 0.85em;
+  background: var(--campo);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.auth-input:focus-within {
+  border-color: var(--rojo);
+  box-shadow: 0 0 0 0.19em rgb(255 42 26 / 22%);
+}
+
+.auth-input[data-invalido='true'] {
+  border-color: #ff5a4d;
+}
+
+.auth-input > svg {
+  position: absolute;
+  left: 1.1em;
+  top: 50%;
+  width: 1.5em;
+  height: 1.5em;
+  transform: translateY(-50%);
+  color: #d4d6de;
+  pointer-events: none;
+}
+
+/* El input cubre toda la caja (el icono y el ojo flotan encima): así el relleno del
+ * autocompletado coincide exactamente con el campo y no deja franjas ni cambia el color. */
+.auth-input input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 1em 0 3.6em;
+  border: 0;
+  outline: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--texto);
+  font-size: 1.05em;
+}
+
+.auth-input:has(.auth-ojo) input {
+  padding-right: 3.4em;
+}
+
+.auth-input input::placeholder {
+  color: var(--texto-suave);
+}
+
+/* Autocompletado de Edge/Chrome: pinta el campo de celeste. Se tapa con un relleno oscuro del
+ * mismo color de la caja y se fuerza el color del texto. */
+.auth-input input:-webkit-autofill,
+.auth-input input:-webkit-autofill:hover,
+.auth-input input:-webkit-autofill:focus,
+.auth-input input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--texto);
+  caret-color: var(--texto);
+  -webkit-box-shadow: 0 0 0 100em var(--campo) inset;
+  box-shadow: 0 0 0 100em var(--campo) inset;
+  border-radius: inherit;
+}
+
+.auth-ojo {
+  position: absolute;
+  right: 0.2em;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 3em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d4d6de;
+  cursor: pointer;
+}
+
+.auth-ojo svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.auth-ojo:hover {
+  color: #fff;
+}
+
+.auth-error {
+  display: block;
+  margin-top: 0.4em;
+  font-size: 0.85em;
+  color: #ff7468;
+}
+
+.auth-error-general {
+  margin: 0.2em 0 0.9em;
+  padding: 0.65em 0.9em;
+  border: 1px solid rgb(255 90 77 / 55%);
+  border-radius: 0.6em;
+  background: rgb(255 42 26 / 10%);
+  color: #ffb4ab;
+  font-size: 0.92em;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Botones y enlaces ---------- */
+.auth-boton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  width: 100%;
+  height: 4.1em;
+  margin-top: 0.75em;
+  border: 0;
+  border-radius: 0.85em;
+  background: linear-gradient(180deg, #ff3b28, var(--rojo-fuerte));
+  color: #fff;
+  font-size: 1.2em;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 1.6em rgb(255 35 20 / 45%);
+  transition:
+    filter 0.15s,
+    transform 0.05s;
+}
+
+.auth-boton svg {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.auth-boton:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.auth-boton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.auth-boton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  box-shadow: none;
+}
+
+.auth-boton-secundario {
+  background: transparent;
+  border: 1px solid var(--borde-campo);
+  box-shadow: none;
+  font-size: 1.05em;
+  font-weight: 600;
+  height: 3.4em;
+}
+
+.auth-opciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  flex-wrap: wrap;
+  margin: 1.4em 0 0.4em;
+  font-size: 0.95em;
+}
+
+.auth-recordar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  cursor: pointer;
+  color: #e4e5ea;
+}
+
+.auth-recordar input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 1.45em;
+  height: 1.45em;
+  margin: 0;
+  border: 1.5px solid var(--borde-campo);
+  border-radius: 0.38em;
+  background: var(--campo);
+  cursor: pointer;
+}
+
+.auth-recordar input:checked {
+  border-color: var(--rojo);
+  background: var(--rojo);
+}
+
+.auth-recordar input:checked::after {
+  content: '';
+  width: 0.4em;
+  height: 0.75em;
+  margin-top: -0.12em;
+  border: solid #fff;
+  border-width: 0 0.17em 0.17em 0;
+  transform: rotate(45deg);
+}
+
+.auth-recordar input:focus-visible,
+.auth-boton:focus-visible,
+.auth-ojo:focus-visible,
+.auth a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.auth a {
+  color: var(--rojo);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.auth a:hover {
+  color: #ff6b5c;
+}
+
+.auth-separador {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin: 1.4em 0 1.1em;
+  color: #d0d2da;
+  font-size: 0.97em;
+}
+
+.auth-separador::before,
+.auth-separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #34363e;
+}
+
+.auth-sociales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+
+.auth-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  height: 3.6em;
+  border: 1px solid var(--borde-campo);
+  border-radius: 0.85em;
+  background: #0d0e12;
+  color: var(--texto);
+  font-size: 1.05em;
+  font-weight: 500;
+}
+
+.auth-social svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.auth-social:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-social small {
+  padding: 0.1em 0.5em;
+  border-radius: 0.5em;
+  background: #23252c;
+  font-size: 0.65em;
+  color: var(--texto-suave);
+}
+
+.auth-pie {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  margin: 1.6em 0 0;
+  color: #d0d2da;
+  font-size: 0.95em;
+}
+
+.auth-pie svg {
+  flex: none;
+  width: 1.9em;
+  height: 1.9em;
+}
+
+.auth-pie strong {
+  color: var(--rojo);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.auth-texto {
+  margin: 0 0 1.2em;
+  color: #dcdee6;
+  line-height: 1.5;
+}
+
+/* ---------- Ventanas medianas ---------- */
+@media (max-width: 1100px) {
+  .auth {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 36em);
+  }
+
+  .auth-hero {
+    max-width: 52%;
+  }
+}
+
+/* ---------- Tablets y celulares: una columna, con scroll si hace falta ---------- */
+@media (max-width: 900px) {
+  .auth {
+    font-size: clamp(14px, 3.6vw, 19px);
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 1.6em;
+    padding: 1.6em 1.2em 2em;
+  }
+
+  .auth-marca {
+    align-self: auto;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  .auth-categorias,
+  .auth-hero,
+  .auth-eslogan {
+    display: none;
+  }
+
+  .auth-cabecera {
+    justify-content: center;
+    gap: 0.9em;
+  }
+
+  .auth-cabecera > svg {
+    width: 4.2em;
+  }
+
+  .auth-wordmark {
+    font-size: 4.2em;
+  }
+
+  .auth-lema {
+    font-size: 0.62em;
+  }
+
+  .auth-brillo {
+    max-width: 34em;
+    margin: 0 auto;
+  }
+
+  .auth-tarjeta {
+    padding: 2.2em 1.7em;
+  }
+
+  .auth-tarjeta h1 {
+    font-size: 2.6em;
+  }
+
+  .auth-subtitulo {
+    font-size: 1em;
+    margin-bottom: 1.3em;
+  }
+
+  .auth-input {
+    height: 3.5em;
+  }
+
+  .auth-boton {
+    height: 3.6em;
+    font-size: 1.1em;
+  }
+
+  .auth-social {
+    height: 3.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth {
+    padding: 1.2em 0.8em 1.6em;
+  }
+
+  .auth-sociales {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-opciones {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .auth-pie {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.4em;
+  }
+}

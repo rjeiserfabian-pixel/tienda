@@ -1,0 +1,573 @@
+/* Pantalla «Registrar compra»: formulario a la izquierda y resumen fijo a la derecha. */
+.compra-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.compra-principal {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (width <= 1100px) {
+  .compra-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .compra-resumen {
+    position: static;
+  }
+}
+
+.compra-etiqueta {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.compra-aviso {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid rgb(245 185 66 / 45%);
+  border-radius: 10px;
+  background: rgb(245 185 66 / 10%);
+  color: #ffe099;
+  font-size: 13.5px;
+}
+
+.compra-corto {
+  max-width: 140px;
+}
+
+.compra-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+
+/* Proveedor elegido */
+.compra-proveedor-buscar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.compra-proveedor-buscar .boton-cabecera {
+  flex: none;
+  height: 46px;
+}
+
+.compra-proveedor-elegido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: rgb(255 42 26 / 6%);
+}
+
+.compra-proveedor-icono {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgb(255 42 26 / 16%);
+}
+
+.compra-proveedor-datos {
+  display: grid;
+  flex: 1;
+  min-width: 180px;
+}
+
+/* Productos */
+.compra-agregar {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.compra-tabla .tabla-datos td {
+  vertical-align: top;
+}
+
+.compra-tabla input,
+.compra-tabla select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 90px;
+}
+
+.compra-numero {
+  min-width: 80px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cantidad y precio: campos cortos, centrados con su encabezado */
+.compra-tabla input.compra-numero {
+  display: block;
+  width: 92px;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+/* Todas las columnas van centradas con su encabezado, menos el producto */
+.compra-tabla thead th:not(:nth-child(2)),
+.compra-tabla tbody td:not(.compra-celda-producto) {
+  text-align: center;
+}
+
+.compra-tabla tbody td:not(.compra-celda-producto) .sub-texto {
+  text-align: center;
+}
+
+/* En la celda del producto, el código va pegado a la izquierda, debajo del nombre */
+.compra-celda-producto .sub-texto {
+  text-align: left;
+}
+
+.compra-celda-producto {
+  min-width: 220px;
+}
+
+.compra-ubicacion {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
+.compra-boton-series {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 12.5px;
+}
+
+.compra-tabla .campo-error {
+  display: block;
+  text-align: left;
+}
+
+/* Forma de pago */
+.compra-pagos {
+  display: grid;
+  gap: 4px;
+}
+
+.compra-pago-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: flex-start;
+}
+
+/* Campos compactos, en una sola fila: método, caja o cuenta, monto y (si hace falta) N° de operación. */
+.compra-pago-fila .campo {
+  flex: 1 1 170px;
+  min-width: 150px;
+  margin-bottom: 8px;
+}
+
+.compra-pago-fila .campo.compra-monto {
+  flex: 0 1 130px;
+  min-width: 110px;
+}
+
+.compra-pago-fila input,
+.compra-pago-fila select {
+  min-height: 38px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.compra-aporte {
+  display: flex;
+  flex: 1 1 100%;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--texto-suave, inherit);
+}
+
+.compra-pago-fila .compra-aporte input {
+  min-height: 0;
+  padding: 0;
+}
+
+.compra-quitar {
+  flex: none;
+  margin-top: 24px;
+}
+
+.compra-pagos-pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.compra-saldo {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid #d9a21c;
+  background: rgb(217 162 28 / 18%);
+  color: #ffe099;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.compra-saldo[data-estado='ok'] {
+  border-color: #1f9a5c;
+  background: rgb(31 154 92 / 18%);
+  color: #8ff0bd;
+}
+
+.compra-cronograma {
+  max-width: 460px;
+}
+
+.compra-flete {
+  display: grid;
+  gap: 8px;
+}
+
+/* Resumen */
+.compra-resumen {
+  position: sticky;
+  top: 68px; /* debajo de la barra superior, para que el resumen se vea completo al bajar */
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  padding: 18px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.compra-resumen h3 {
+  margin: 0;
+}
+
+.compra-resumen p {
+  margin: 0;
+}
+
+.compra-totales {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.compra-totales > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compra-totales dt {
+  color: var(--texto-suave);
+}
+
+.compra-totales dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.compra-totales[data-calculando] dd {
+  opacity: 0.5;
+}
+
+.compra-total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--borde);
+}
+
+.compra-total dt {
+  color: var(--texto);
+  font-weight: 700;
+}
+
+.compra-total dd {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.compra-totales-ficha {
+  max-width: 360px;
+  margin: 14px 0 14px auto;
+}
+
+.compra-faltan {
+  padding: 10px 14px;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.compra-faltan ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--texto-suave);
+}
+
+.compra-registrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+.compra-subtitulo {
+  margin: 16px 0 8px;
+}
+
+/* Actualizar precios */
+.precios-lista {
+  display: grid;
+  gap: 14px;
+  max-height: 55vh;
+  margin: 12px 0;
+  overflow: auto;
+}
+
+.precios-bloque {
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.precios-bloque > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.precios-costo {
+  display: grid;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.precios-costo input {
+  max-width: 160px;
+}
+
+/* Botón «PV» de cada línea: precios de venta preparados */
+.compra-pv {
+  min-width: 52px;
+  padding: 4px 10px;
+  border-color: #d9a21c;
+  background: rgb(217 162 28 / 20%);
+  color: #ffe099;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.compra-pv.listo {
+  border-color: #1f9a5c;
+  background: rgb(31 154 92 / 22%);
+  color: #8ff0bd;
+}
+
+/* Cuentas por pagar */
+.cxp-resumen {
+  display: grid;
+  gap: 12px;
+}
+
+.cxp-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.cxp-tarjetas > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.cxp-tarjetas > div[data-tono='rojo'] {
+  border-color: #d11a27;
+  background: rgb(209 26 39 / 12%);
+}
+
+.cxp-tarjetas > div[data-tono='ambar'] {
+  border-color: #d9a21c;
+  background: rgb(217 162 28 / 10%);
+}
+
+/* Los indicadores y la tabla que les sigue no van pegados. */
+.cxp-tarjetas + .marco-tabla {
+  margin-top: 16px;
+}
+
+.cxp-tarjetas dt {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.cxp-tarjetas dd {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.cxp-tarjetas small {
+  color: var(--texto-suave);
+}
+
+.cxp-vencido {
+  color: #ff8f84;
+}
+
+.compra-pagar {
+  height: auto;
+  padding: 5px 14px;
+}
+
+.compra-atajos {
+  margin: 0 0 8px;
+}
+
+.compra-lote {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
+.compra-xml-producto {
+  min-width: 280px;
+}
+
+/* Precio que viene del catálogo y aún no se confirmó con la factura */
+.compra-tabla input.sugerido {
+  border-style: dashed;
+  border-color: #d9a21c;
+}
+
+.compra-confirmar {
+  display: block;
+  height: auto;
+  margin: 6px auto 0;
+  padding: 3px 8px;
+  border-color: #d9a21c;
+  background: rgb(217 162 28 / 14%);
+  color: #ffe099;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.compra-confirmar-todos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+}
+
+/* La fecha de vencimiento y su etiqueta («Vence hoy») no van pegadas */
+.cxp-vence .pildora {
+  margin-left: 12px;
+}
+
+/* Cuotas marcadas para pagar */
+.compra-cuota-marcada td {
+  background: rgb(255 42 26 / 8%);
+}
+
+.compra-pagar-marcadas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-top: 12px;
+}
+
+.compra-sale {
+  flex-basis: 100%;
+  margin: 0 0 4px;
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.casilla input {
+  width: 18px;
+  height: 18px;
+}
+
+/* Devoluciones a proveedores */
+.dev-cantidad {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.dev-cantidad .campo {
+  width: 120px;
+}
+
+.dev-cantidad .campo label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dev-series {
+  display: grid;
+  gap: 4px;
+  max-height: 320px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  overflow-y: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  list-style: none;
+}
+
+.dev-series label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Órdenes de compra */
+.orden-avance {
+  width: 100%;
+  height: 10px;
+  margin-bottom: 10px;
+  accent-color: var(--acento, #1f7a4d);
+}

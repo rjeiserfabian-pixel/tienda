@@ -1,0 +1,142 @@
+/* Familias (izquierda) y categorías de la familia elegida (derecha) */
+.clasif {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.clasif-familias {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.clasif-familias .buscador {
+  min-width: 0;
+  height: 40px;
+}
+
+.clasif-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 520px;
+  margin: 0;
+  padding: 0 4px 0 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.clasif-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--texto-suave);
+  text-align: left;
+  text-transform: none;
+}
+
+.clasif-item:hover {
+  background: rgb(255 255 255 / 5%);
+  color: var(--texto);
+}
+
+.clasif-item.activo {
+  border-color: var(--borde-rojo);
+  background: rgb(255 42 26 / 14%);
+  color: #fff;
+}
+
+.clasif-item.activo svg {
+  color: var(--rojo);
+}
+
+.clasif-item.inactivo .clasif-nombre {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.clasif-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clasif-conteo {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #cfd2da;
+}
+
+.clasif-vacio {
+  padding: 18px 8px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.clasif-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.clasif-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.clasif-cab-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.clasif-cab h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.clasif-cab p {
+  margin: 4px 0 0;
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.clasif-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (width <= 900px) {
+  .clasif {
+    grid-template-columns: 1fr;
+  }
+
+  .clasif-lista {
+    max-height: 240px;
+  }
+}

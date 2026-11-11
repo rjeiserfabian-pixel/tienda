@@ -1,0 +1,73 @@
+/* Gastos */
+.gasto-modos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.gasto-modos button {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  text-align: left;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.gasto-modos button span {
+  color: var(--texto-suave);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.gasto-modos button.activo {
+  border-color: #d11a27;
+  background: rgb(209 26 39 / 14%);
+}
+
+.gasto-reparto {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.gasto-reparto-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.gasto-reparto-fila .campo:first-child {
+  flex: 1 1 240px;
+}
+
+.gasto-reparto-monto {
+  min-width: 90px;
+  margin: 0 0 10px;
+}
+
+.gasto-sin-sustento {
+  white-space: nowrap;
+}
+
+.gasto-cabecera-ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.gasto-dato {
+  display: grid;
+  gap: 2px;
+}
+
+.gasto-dato dt {
+  color: var(--texto-suave);
+  font-size: 12.5px;
+}
+
+.gasto-dato dd {
+  margin: 0;
+}

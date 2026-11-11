@@ -1,0 +1,65 @@
+/* Facturación electrónica: barra de filtros, mensajes de envío, JSON y configuración. */
+
+.barra-fe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.barra-fe .segmentos {
+  margin: 0;
+}
+
+.barra-fe .buscador {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.fe-mensaje {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fe-json {
+  max-height: 55vh;
+  margin: 10px 0;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: #0a0b0f;
+  color: #cfd3dd;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.fe-config {
+  display: grid;
+  gap: 14px;
+  max-width: 860px;
+}
+
+.fe-titulo {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--texto-suave);
+}
+
+.fe-pie {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.fe-pie button {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+}

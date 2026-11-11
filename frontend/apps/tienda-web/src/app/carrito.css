@@ -1,0 +1,253 @@
+/* Carrito de compras (prefijo car-). */
+.carrito-pagina {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.car-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.car-vaciar,
+.car-quitar {
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  color: var(--ink-tenue);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.car-vaciar:hover,
+.car-quitar:hover {
+  color: var(--bad);
+}
+
+.car-rejilla {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .car-rejilla {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 28px;
+  }
+
+  .car-resumen {
+    position: sticky;
+    top: calc(var(--alto-cabecera) + 16px);
+  }
+}
+
+.car-lineas {
+  display: grid;
+  gap: 12px;
+}
+
+.car-linea {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 6px 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+}
+
+@media (min-width: 640px) {
+  .car-linea {
+    grid-template-columns: 112px minmax(0, 1fr) auto;
+    gap: 16px;
+    padding: 16px;
+  }
+}
+
+.car-linea.con-problema {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--line));
+}
+
+.car-foto {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  color: var(--ink-tenue);
+  font-size: 12px;
+}
+
+.car-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.car-datos {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.car-marca {
+  color: var(--ink-tenue);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.car-nombre {
+  font-weight: 700;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.car-nombre:hover {
+  color: var(--accent);
+}
+
+.car-unitario {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.car-problema {
+  padding: 8px 10px;
+  font-size: 13.5px;
+}
+
+.car-ajustar {
+  justify-self: start;
+}
+
+.car-controles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.car-controles .acc-cantidad button {
+  min-height: 42px;
+  width: 40px;
+}
+
+.car-subtotal {
+  grid-column: 2;
+  font-family: var(--f-display), sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .car-subtotal {
+    grid-column: 3;
+    text-align: right;
+  }
+}
+
+/* Resumen */
+.car-resumen {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+  box-shadow: var(--sombra);
+}
+
+.car-resumen h2 {
+  font-size: 1.25rem;
+}
+
+.car-resumen dl {
+  display: grid;
+  gap: 10px;
+}
+
+.car-resumen dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-soft);
+}
+
+.car-resumen dd {
+  font-weight: 700;
+  color: var(--ink);
+  text-align: right;
+}
+
+.car-nota-envio {
+  font-weight: 500 !important;
+  font-size: 13.5px;
+  color: var(--ink-tenue) !important;
+}
+
+.car-total {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 1.1rem;
+}
+
+.car-total dd {
+  font-family: var(--f-display), sans-serif;
+  font-size: 1.4rem;
+}
+
+.car-igv {
+  color: var(--ink-tenue);
+  font-size: 13px;
+}
+
+/* Vacío */
+.car-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 40px 0 24px;
+  text-align: center;
+}
+
+.car-vacio p {
+  color: var(--ink-soft);
+  max-width: 38ch;
+}
+
+.car-vacio-cats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.car-vacio-cats a {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.car-vacio-cats a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

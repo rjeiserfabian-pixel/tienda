@@ -1,0 +1,1223 @@
+/* Punto de venta: catálogo arriba (8 fichas en 2 filas) y, debajo, la venta a todo el ancho */
+.pos-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.pos-catalogo {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.pos-rejilla {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .pos-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pos-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pos-ficha {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.pos-ficha:hover:not(.agotada) {
+  border-color: var(--borde-rojo);
+  transform: translateY(-1px);
+}
+
+.pos-ficha.agotada {
+  opacity: 0.6;
+}
+
+.pos-foto {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--superficie-2);
+}
+
+.pos-ficha-datos {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pos-ficha-datos h4,
+.pos-ficha-datos p {
+  margin: 0;
+}
+
+.pos-ficha-datos h4 {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pos-precio {
+  font-size: 20px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-existencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pos-agregar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+}
+
+.pos-categorias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.pos-categorias button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.pos-filtro-activo {
+  border-color: var(--borde-rojo);
+  color: #ff8f84;
+}
+
+.pos-paginas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+/* Panel de la venta: a la izquierda lo que se lleva (carrito y desglose), a la derecha quién, cómo y cobro */
+.pos-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.pos-panel > .compra-aviso {
+  grid-column: 1 / -1;
+}
+
+.pos-col {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pos-col-venta .pos-pie {
+  position: sticky;
+  bottom: 8px;
+}
+
+@media (max-width: 1000px) {
+  .pos-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pos-cliente {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.pos-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0 8px;
+}
+
+.pos-fila label {
+  flex: 1 1 120px;
+}
+
+.pos-panel label {
+  display: grid;
+  gap: 4px;
+}
+
+.pos-panel select,
+.pos-panel input:not([type='radio']) {
+  width: 100%;
+}
+
+/* Dentro de una tarjeta, cada bloque separado del siguiente */
+.pos-bloques {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Botón chico con icono (series, vaciar el carrito) */
+.pos-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  min-height: 32px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 999px;
+  background: rgb(255 59 48 / 8%);
+  color: #ff8f84;
+  font-size: 13px;
+}
+
+.pos-chip:hover:not(:disabled) {
+  background: rgb(255 59 48 / 18%);
+}
+
+.pos-chip.listo {
+  border-color: rgb(52 199 89 / 55%);
+  background: rgb(52 199 89 / 10%);
+  color: #7ee0a0;
+}
+
+/* Vaciar el carrito: a la derecha de su fila y en ámbar, para que se vea */
+.pos-chip.peligro {
+  justify-self: end;
+  margin-top: 0;
+  border-color: #f5b942;
+  background: rgb(245 185 66 / 16%);
+  color: #ffd166;
+  font-weight: 600;
+}
+
+.pos-chip.peligro:hover:not(:disabled) {
+  background: rgb(245 185 66 / 30%);
+}
+
+.pos-enlace {
+  justify-self: start;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: #ff8f84;
+  text-decoration: underline;
+}
+
+.pos-enlace:hover:not(:disabled) {
+  background: transparent;
+}
+
+.pos-carrito-vacio {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 24px 10px;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.pos-carrito-vacio p {
+  margin: 0;
+  color: var(--texto);
+}
+
+.pos-lineas {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-linea {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'ins datos quitar'
+    'ins cant total'
+    'ins precio total';
+  gap: 6px 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.pos-insignia {
+  grid-area: ins;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--rojo);
+  background: rgb(255 42 26 / 14%);
+  color: #fff;
+  font-weight: 800;
+}
+
+.pos-insignia[data-letra='B'] {
+  border-color: #4c9aff;
+  background: rgb(76 154 255 / 16%);
+}
+
+.pos-insignia:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.pos-insignia.pequena {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.pos-linea-datos {
+  grid-area: datos;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pos-linea-datos strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pos-cantidad {
+  grid-area: cant;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pos-cantidad button {
+  width: 32px;
+  padding: 6px 0;
+}
+
+.pos-cantidad input {
+  width: 58px !important;
+  text-align: center;
+}
+
+.pos-precio-linea {
+  grid-area: precio;
+}
+
+.pos-precio-linea input {
+  max-width: 130px;
+}
+
+.pos-linea-total {
+  grid-area: total;
+  display: grid;
+  justify-items: end;
+  align-self: end;
+}
+
+.pos-linea > .accion-icono {
+  grid-area: quitar;
+  justify-self: end;
+}
+
+/* Desglose por empresa */
+.pos-desglose {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.pos-desglose.calculando {
+  opacity: 0.55;
+}
+
+.pos-desglose section {
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.pos-desglose h4 {
+  margin: 0 0 6px;
+}
+
+.pos-cuotas {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.pos-cuotas li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--superficie);
+}
+
+.pos-total-chico strong {
+  font-size: 20px;
+}
+
+/* Cobro */
+.pos-cobro {
+  display: grid;
+  gap: 12px;
+}
+
+.pos-medios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.pos-medios button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+}
+
+.pos-cobro-fila {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.pos-cobro-fila header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pos-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pos-vuelto {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgb(53 208 127 / 12%);
+  color: var(--verde);
+}
+
+.pos-vuelto strong {
+  font-size: 18px;
+}
+
+.pos-falta {
+  color: var(--ambar);
+}
+
+.pos-sobra {
+  color: #ff7468;
+}
+
+/* Pie con el total y el botón */
+.pos-pie {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 14px;
+  background: var(--superficie);
+  box-shadow: 0 -8px 18px rgb(0 0 0 / 35%);
+}
+
+.pos-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pos-total strong {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos-avisos {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 12px 8px 28px;
+  border-radius: 10px;
+  background: rgb(245 185 66 / 10%);
+  color: var(--ambar);
+  font-size: 14px;
+}
+
+.pos-generar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  font-size: 17px;
+}
+
+/* Venta registrada */
+.pos-emitidos {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.pos-emitidos li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.pos-emitidos li > div {
+  display: grid;
+}
+
+.pos-total-hecho {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+/* Historial y ficha */
+.venta-comprobante {
+  display: block;
+}
+
+.venta-comprobante[data-anulado] {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.venta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.venta-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+}
+
+.venta-datos dt {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.venta-datos dd {
+  margin: 2px 0 0;
+}
+
+.venta-cobros {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.venta-cobros li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+.venta-cobros li > span {
+  display: grid;
+}
+
+/* Ticket de 80 mm: en pantalla no se ve; al imprimir sale solo él */
+.ticket-raiz {
+  display: none;
+}
+
+.ticket {
+  width: 72mm;
+  color: #000;
+  background: #fff;
+  font: 11px/1.35 'Courier New', monospace;
+}
+
+.ticket header {
+  display: grid;
+  gap: 1px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.ticket p {
+  margin: 6px 0;
+}
+
+.ticket table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ticket th,
+.ticket td {
+  padding: 2px 0;
+  border-bottom: 1px dashed #000;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ticket th:last-child,
+.ticket td:last-child {
+  text-align: right;
+}
+
+.ticket dl {
+  margin: 6px 0;
+}
+
+.ticket dl > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ticket dt,
+.ticket dd {
+  margin: 0;
+}
+
+.ticket-total {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ticket-logo {
+  display: block;
+  max-width: 56mm;
+  max-height: 18mm;
+  margin: 0 auto 4px;
+  object-fit: contain;
+}
+
+.ticket-qr {
+  display: block;
+  width: 30mm;
+  height: 30mm;
+  margin: 6px auto 4px;
+}
+
+.ticket-centro {
+  text-align: center;
+}
+
+.ticket-firma {
+  margin-top: 22px;
+  padding-top: 3px;
+  border-top: 1px solid #000;
+}
+
+.ticket-anulado {
+  font-size: 16px;
+}
+
+.ticket footer {
+  display: grid;
+  text-align: center;
+}
+
+/* Documento en hoja A4 (proforma): en pantalla no se ve; al imprimir sale solo él */
+.documento-raiz {
+  display: none;
+}
+
+@page ticket {
+  size: 80mm auto;
+  margin: 4mm;
+}
+
+@page documento {
+  size: A4;
+  margin: 14mm;
+}
+
+/* Etiqueta pequeña (la que se pega en un equipo): como el ticket, solo sale al imprimir */
+.etiqueta-raiz {
+  display: none;
+}
+
+@page etiqueta {
+  size: 62mm 38mm;
+  margin: 2mm;
+}
+
+@media print {
+  body > *:not(.ticket-raiz):not(.documento-raiz):not(.etiqueta-raiz) {
+    display: none !important;
+  }
+
+  .etiqueta-raiz {
+    display: block;
+    page: etiqueta;
+  }
+
+  .ticket-raiz {
+    display: block;
+    page: ticket;
+  }
+
+  .documento-raiz {
+    display: block;
+    page: documento;
+  }
+}
+
+.documento {
+  color: #000;
+  background: #fff;
+  font: 12px/1.45 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.documento header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #000;
+}
+
+.documento header > div {
+  display: grid;
+  gap: 1px;
+}
+
+.documento h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.documento .documento-numero {
+  text-align: right;
+}
+
+.documento table {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+}
+
+.documento th,
+.documento td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #999;
+  text-align: left;
+  vertical-align: top;
+}
+
+.documento th:nth-child(n + 3),
+.documento td:nth-child(n + 3) {
+  text-align: right;
+}
+
+.documento dl {
+  display: grid;
+  gap: 2px;
+  width: 260px;
+  margin: 8px 0 8px auto;
+}
+
+.documento dl > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.documento dt,
+.documento dd {
+  margin: 0;
+}
+
+.documento .documento-total {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.documento footer {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid #999;
+}
+
+.proforma-pie-estado {
+  font-weight: 700;
+}
+
+/* Ventas por cobrar */
+.cobranza-comprobante {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.cobranza-comprobante header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cobranza-comprobante header > div:first-child {
+  display: grid;
+}
+
+.cobranza-saldo {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.cobranza-saldo strong {
+  font-size: 20px;
+}
+
+.pos-cuotas-elegir {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.pos-cuotas-elegir label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.venta-abono-monto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.venta-cobros li.anulado {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+/* Liquidación de tarjetas */
+.liquidar-accion {
+  display: grid;
+  align-content: center;
+}
+
+/* Nota de crédito */
+.nota-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: 6px;
+}
+
+.nota-series label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nota-reingreso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.nota-resumen {
+  max-width: 460px;
+  margin-top: 12px;
+}
+
+/* Cobro: cada método en su bloque, con sus billetes y su vuelto debajo de la fila */
+.compra-pago-bloque {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--borde);
+}
+
+.compra-pago-bloque:last-of-type {
+  border-bottom: 0;
+}
+
+.pos-resumen-cobro {
+  min-width: 220px;
+}
+
+/* Cliente a la izquierda y, a su derecha, la serie (y próximo número) de cada empresa de la venta */
+.pos-cliente-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.pos-series {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pos-serie {
+  width: 190px;
+  margin: 0 0 12px; /* el mismo margen inferior del buscador de cliente: quedan a la misma altura */
+}
+
+.campo.pos-serie input:not([type='checkbox']),
+.campo.pos-serie select {
+  height: 46px; /* como el buscador de cliente */
+}
+
+@media (max-width: 900px) {
+  .pos-cliente-fila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pos-serie {
+    flex: 1 1 170px;
+    width: auto;
+  }
+}
+
+/* En el historial, el comprobante de la empresa que se está viendo va resaltado */
+.venta-comprobante.propio {
+  color: var(--texto);
+  font-weight: 700;
+}
+
+/* «Buscar venta»: del mismo tamaño que «Emitir nota de crédito» (.pos-generar), no estirado a toda la fila */
+.fila-campos > .nota-buscar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: end;
+  margin-bottom: 9px; /* 12 px de margen del campo menos 3 px: centrado respecto a las cajas de 46 px */
+  gap: 8px;
+  height: 52px;
+  min-height: 52px;
+  padding-block: 0;
+  font-size: 17px;
+}
+
+/* Vista previa de impresión: el documento tal como saldrá, en A4 o en ticket de 80 mm */
+.vista-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* El formato, el botón Imprimir y Cerrar: los tres del mismo alto y en la misma línea */
+.vista-formato {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.vista-formato .campo-icono select {
+  min-width: 210px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 40px 0 14px;
+}
+
+.vista-barra .boton-cabecera {
+  height: 44px;
+}
+
+/* La hoja toma el alto de su contenido (no el del marco) y el marco se desplaza si no cabe */
+.vista-lienzo {
+  display: flex;
+  align-items: flex-start;
+  max-height: 62vh;
+  margin-top: 8px;
+  padding: 16px;
+  overflow: auto;
+  border-radius: 10px;
+  background: #2a2e38;
+}
+
+.vista-hoja {
+  flex: none;
+  box-sizing: border-box;
+  margin: 0 auto;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 45%);
+}
+
+.vista-a4 {
+  width: 210mm;
+  min-height: 120mm;
+  padding: 14mm;
+}
+
+/* En pantalla se agranda (zoom) para leerse bien; al imprimir sale en su tamaño real. */
+.vista-ticket {
+  width: 80mm;
+  padding: 4mm;
+  zoom: 1.35;
+}
+
+.vista-etiqueta {
+  width: 62mm;
+  padding: 2mm;
+  zoom: 2.4;
+}
+
+/* Hoja A4 del comprobante de venta y del recibo de cobranza */
+.documento-caja {
+  min-width: 190px;
+  padding: 8px 12px;
+  border: 2px solid #000;
+  text-align: center;
+}
+
+.documento .documento-caja {
+  text-align: center;
+}
+
+.documento .ticket-logo {
+  margin: 0 0 4px;
+}
+
+.documento-anulado {
+  font-size: 16px;
+}
+
+.documento-cliente {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+  margin: 10px 0;
+}
+
+.documento-cliente p {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  margin: 0 0 2px;
+}
+
+.documento-cliente b {
+  font-weight: 700;
+}
+
+.documento-venta .documento-items th:nth-child(1),
+.documento-venta .documento-items td:nth-child(1),
+.documento-venta .documento-items th:nth-child(2),
+.documento-venta .documento-items td:nth-child(2) {
+  text-align: center;
+}
+
+.documento-venta .documento-items th:nth-child(3),
+.documento-venta .documento-items td:nth-child(3) {
+  text-align: left;
+}
+
+.documento-venta .documento-items th,
+.documento-venta .documento-items td {
+  border: 1px solid #000;
+}
+
+.documento-venta .documento-totales {
+  margin: 0;
+}
+
+.documento-venta .documento-totales th,
+.documento-venta .documento-totales td {
+  border: 1px solid #000;
+  text-align: right;
+  font-size: 11px;
+}
+
+.documento-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.documento-pie > div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.documento-pie .ticket-qr {
+  width: 28mm;
+  height: 28mm;
+  margin: 0 0 4px auto;
+}
+
+/* Columnas que miden lo que su contenido (estado, botones): si no, la tabla les reparte espacio de más y se separan */
+.tabla-datos th.col-ajustada,
+.tabla-datos td.col-ajustada,
+.tabla-datos th.col-acciones,
+.tabla-datos td.col-acciones {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* La de los botones, además, pegada a la derecha */
+.tabla-datos th.col-acciones,
+.tabla-datos td.col-acciones {
+  text-align: right;
+}
+
+/* Guía de remisión: una lista con su botón «+» al lado, y las placas secundarias elegidas */
+.guia-fila-con-boton {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.guia-fila-con-boton > .campo {
+  flex: 1;
+  min-width: 0;
+}
+
+.guia-mas {
+  flex: none;
+  margin-bottom: 12px; /* el mismo margen inferior del campo, para quedar a la altura de la lista */
+  width: 46px;
+  height: 46px;
+  color: #fff;
+  border-color: #3a3f4b;
+  background: #171a21;
+}
+
+.guia-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guia-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+}
+
+.guia-chips button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-suave);
+}
+
+
+/* Aviso discreto de stock antiguo bajo el producto del carrito (solo una ayuda, no bloquea). */
+.pos-aviso-antiguo {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--advertencia, #b7791f);
+}
+
+.pos-aviso-antiguo svg {
+  flex: none;
+  margin-top: 2px;
+}

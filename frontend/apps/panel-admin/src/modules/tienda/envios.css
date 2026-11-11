@@ -1,0 +1,239 @@
+/* Pantalla «Envíos y recojo» */
+.envios-pagina {
+  display: grid;
+  gap: 16px;
+}
+
+.envios-ajustes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.envios-ajustes-pie {
+  display: grid;
+  gap: 6px;
+  align-self: end;
+}
+
+.envios-pestanas {
+  justify-self: start;
+}
+
+.envios-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.envios-tarjeta {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.envios-tarjeta[data-apagada] {
+  opacity: 0.65;
+}
+
+.envios-tarjeta header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.envios-tarjeta h4 {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.envios-tarjeta p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.envios-acciones {
+  display: flex;
+  gap: 4px;
+}
+
+.envios-etiqueta {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 2px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.envios-etiqueta.apagada {
+  border-color: var(--borde-rojo);
+}
+
+.envios-tarifas-resumen {
+  font-size: 0.92rem;
+}
+
+/* Etiquetas de lugares (en la tarjeta y en el selector) */
+.envios-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.envios-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 3px 4px 3px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.envios-chips.solo-lectura li {
+  padding-right: 10px;
+}
+
+.envios-chips li span {
+  overflow-wrap: anywhere;
+}
+
+.envios-chips button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/* Formulario dentro de los cuadros */
+.envios-form {
+  display: grid;
+  gap: 16px;
+}
+
+.envios-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 12px 16px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.envios-form legend {
+  padding: 0 8px;
+  font-weight: 600;
+}
+
+.envios-tarifas table {
+  width: 100%;
+  margin-bottom: 8px;
+  border-collapse: collapse;
+}
+
+.envios-tarifas th {
+  text-align: left;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+  font-weight: 600;
+}
+
+.envios-tarifas td {
+  padding: 4px 6px 4px 0;
+}
+
+.envios-tarifas td input {
+  width: 100%;
+  min-width: 0;
+}
+
+.envios-lugares-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+.envios-lugares-selector label,
+.envios-distritos label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.envios-distritos {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.envios-distritos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: 6px 12px;
+  max-height: 220px;
+  margin: 0;
+  padding: 8px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+}
+
+/* Casilla + nombre del distrito en una sola fila, centrados y con área de toque cómoda. */
+.envios-distritos-lista .tienda-casilla {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.envios-distritos-lista .tienda-casilla:hover {
+  background: rgb(255 255 255 / 5%);
+}
+
+.envios-distritos-lista .tienda-casilla input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.envios-distritos-lista .tienda-casilla small {
+  color: var(--texto-suave, inherit);
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .envios-lugares-selector > * {
+    flex: 1 1 100%;
+  }
+}

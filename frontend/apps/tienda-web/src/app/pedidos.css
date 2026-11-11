@@ -1,0 +1,238 @@
+/* Pedidos del cliente: lista, detalle y pantalla de gracias (prefijo ped-). */
+.ped {
+  display: grid;
+  gap: 16px;
+}
+
+.ped-gracias {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: clamp(20px, 5vw, 36px) 16px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+}
+
+.ped-gracias h1 {
+  font-size: clamp(24px, 5vw, 32px);
+}
+
+.ped-gracias .sub {
+  max-width: 52ch;
+  color: var(--ink-soft);
+}
+
+.ped-check {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.ped-check.espera {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.ped-numero {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.ped-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.ped-cabecera h1 {
+  font-size: clamp(22px, 4.5vw, 28px);
+  margin-right: 6px;
+}
+
+.ped-progreso {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 14px 8px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+  font-size: 12.5px;
+  text-align: center;
+  color: var(--ink-tenue);
+}
+
+.ped-progreso li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.ped-progreso li.hecho {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ped-punto {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  font-size: 12px;
+}
+
+.ped-progreso .hecho .ped-punto {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+.ped-rejilla {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .ped-rejilla {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+}
+
+.ped-lado {
+  display: grid;
+  gap: 16px;
+}
+
+.ped-lineas,
+.ped-comprobantes,
+.ped-lista {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ped-lineas li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ped-lineas li:last-child {
+  border-bottom: 0;
+}
+
+.ped-totales {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.ped-totales > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ped-totales dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ped-totales .car-total {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 1.15rem;
+}
+
+.ped-totales .car-total dd {
+  font-weight: 800;
+}
+
+.ped-comprobantes li {
+  display: grid;
+  gap: 2px;
+}
+
+.ped-acciones {
+  margin-top: 4px;
+}
+
+/* Lista de «Mis pedidos» */
+.ped-fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.ped-fila:hover {
+  border-color: var(--accent);
+}
+
+.ped-fila small {
+  display: block;
+  color: var(--ink-tenue);
+}
+
+.ped-fila > svg {
+  display: none;
+}
+
+.ped-fila-total {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+}
+
+.ped-fila .insignia {
+  justify-self: start;
+}
+
+@media (min-width: 640px) {
+  .ped-fila {
+    grid-template-columns: 1fr auto auto auto;
+  }
+
+  .ped-fila > svg {
+    display: block;
+  }
+
+  .ped-fila-total {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+.ped-paginas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.ped-lineas strong {
+  white-space: nowrap;
+}

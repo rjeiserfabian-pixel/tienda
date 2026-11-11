@@ -1,0 +1,71 @@
+/* Selector de ubigeo: cuadro de búsqueda con su lista de resultados debajo */
+.selector-ubigeo {
+  position: relative;
+  width: 100%;
+}
+
+.selector-ubigeo.con-valor input {
+  padding-right: 46px;
+}
+
+.selector-ubigeo-quitar {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto-suave);
+  transform: translateY(-50%);
+}
+
+.selector-ubigeo-quitar:hover {
+  color: var(--texto);
+}
+
+.selector-ubigeo-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  z-index: 30;
+  display: grid;
+  max-height: 260px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--superficie);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 55%);
+  list-style: none;
+}
+
+.selector-ubigeo-lista li[role='option'] {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.selector-ubigeo-lista li[role='option'].activa {
+  background: rgb(255 42 26 / 16%);
+}
+
+.selector-ubigeo-lista small {
+  color: var(--texto-suave);
+}
+
+.selector-ubigeo-aviso {
+  padding: 8px 10px;
+  color: var(--texto-suave);
+  font-size: 14px;
+}

@@ -1,0 +1,315 @@
+/* Recursos humanos: panel de valores vigentes. */
+
+.rh-resumen {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.rh-resumen header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rh-resumen h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.rh-resumen ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rh-resumen li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font-size: 13.5px;
+}
+
+.rh-resumen li span {
+  color: var(--texto-suave);
+}
+
+.rh-resumen li[data-falta='si'] {
+  border-color: rgb(217 162 28 / 60%);
+}
+
+.rh-resumen li[data-falta='si'] strong {
+  color: #ffe099;
+}
+
+/* ---------- Trabajadores: lista y ficha ---------- */
+.rh-fila-clicable {
+  cursor: pointer;
+}
+
+.rh-fila-clicable:hover {
+  background: rgb(255 255 255 / 4%);
+}
+
+.rh-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--texto-suave, #9aa0ad);
+  font-size: 12px;
+}
+
+.rh-fila-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.rh-aviso {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--borde);
+  border-left: 3px solid #d9a21c;
+  border-radius: 8px;
+  background: var(--superficie);
+  font-size: 14px;
+}
+
+.rh-aviso ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.rh-pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rh-pestanas button {
+  padding: 8px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rh-pestanas button[aria-selected='true'] {
+  border-color: #b3141f;
+  background: rgb(179 20 31 / 20%);
+}
+
+.rh-tarjeta {
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.rh-tarjeta h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.rh-tarjeta header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rh-opciones {
+  display: grid;
+  gap: 10px;
+}
+
+.rh-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+
+.rh-datos dt {
+  color: var(--texto-suave, #9aa0ad);
+  font-size: 12px;
+}
+
+.rh-datos dd {
+  margin: 2px 0 0;
+}
+
+.rh-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Asistencia: grilla del mes ---------- */
+.rh-mes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.rh-mes strong {
+  min-width: 150px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.rh-grilla {
+  overflow-x: auto;
+}
+
+.rh-grilla table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.rh-grilla th.rh-nombre {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 190px;
+  background: var(--superficie);
+  text-align: left;
+  font-weight: 600;
+}
+
+.rh-celda {
+  min-width: 34px;
+  padding: 2px !important;
+  text-align: center;
+}
+
+.rh-grilla thead .rh-celda small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--texto-suave, #9aa0ad);
+}
+
+.rh-celda[data-semana] {
+  background: rgb(255 255 255 / 4%);
+}
+
+.rh-celda[data-feriado] {
+  background: rgb(217 162 28 / 14%);
+}
+
+.rh-celda button {
+  position: relative;
+  width: 100%;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rh-celda button:disabled {
+  cursor: default;
+}
+
+.rh-celda[data-fuera] button {
+  opacity: 0.25;
+}
+
+.rh-celda button[data-vacia]:not(:disabled) {
+  border: 1px dashed var(--borde);
+}
+
+.rh-celda button:hover:not(:disabled) {
+  filter: brightness(1.3);
+}
+
+.rh-celda button i {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffe099;
+}
+
+/* Un color por categoría: casilleros, tipos del modal y leyenda. */
+.rh-celda button[data-cat='LABORADO'], .rh-tipo[data-cat='LABORADO'], .rh-leyenda li[data-cat='LABORADO'] { border-color: #1f9a5c; background: rgb(31 154 92 / 24%); }
+.rh-celda button[data-cat='DESCANSO_SEMANAL'], .rh-tipo[data-cat='DESCANSO_SEMANAL'], .rh-leyenda li[data-cat='DESCANSO_SEMANAL'] { border-color: #4a4f5c; background: rgb(255 255 255 / 8%); }
+.rh-celda button[data-cat='FALTA'], .rh-tipo[data-cat='FALTA'], .rh-leyenda li[data-cat='FALTA'] { border-color: #d11a27; background: rgb(209 26 39 / 28%); }
+.rh-celda button[data-cat='DESCANSO_PAGADO'], .rh-tipo[data-cat='DESCANSO_PAGADO'], .rh-leyenda li[data-cat='DESCANSO_PAGADO'] { border-color: #2f6fe0; background: rgb(47 111 224 / 26%); }
+.rh-celda button[data-cat='DESCANSO_MEDICO'], .rh-tipo[data-cat='DESCANSO_MEDICO'], .rh-leyenda li[data-cat='DESCANSO_MEDICO'] { border-color: #7a3fe0; background: rgb(122 63 224 / 28%); }
+.rh-celda button[data-cat='VACACIONES'], .rh-tipo[data-cat='VACACIONES'], .rh-leyenda li[data-cat='VACACIONES'] { border-color: #1fa0a8; background: rgb(31 160 168 / 24%); }
+.rh-celda button[data-cat='FERIADO'], .rh-tipo[data-cat='FERIADO'], .rh-leyenda li[data-cat='FERIADO'] { border-color: #d9a21c; background: rgb(217 162 28 / 26%); }
+.rh-celda button[data-cat='TRABAJO_FERIADO'], .rh-tipo[data-cat='TRABAJO_FERIADO'], .rh-leyenda li[data-cat='TRABAJO_FERIADO'] { border-color: #e0702f; background: rgb(224 112 47 / 28%); }
+.rh-celda button[data-cat='OTRO'], .rh-tipo[data-cat='OTRO'], .rh-leyenda li[data-cat='OTRO'] { border-color: #4a4f5c; background: rgb(255 255 255 / 6%); }
+
+.rh-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.rh-leyenda li {
+  padding: 4px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+}
+
+.rh-tipos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.rh-tipo {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.rh-tipo span {
+  font-size: 12px;
+}
+
+.rh-tipo[aria-checked='true'] {
+  opacity: 1;
+  box-shadow: 0 0 0 2px currentcolor;
+}
+
+.rh-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

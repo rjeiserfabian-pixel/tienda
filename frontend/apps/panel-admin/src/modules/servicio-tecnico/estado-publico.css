@@ -1,0 +1,104 @@
+/* Página pública del estado de una orden (sin el panel alrededor) */
+.estado-publico {
+  display: grid;
+  min-height: 100vh;
+  padding: 20px 16px;
+  place-items: start center;
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+.estado-publico-caja {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: 520px;
+  padding: 24px 20px;
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  background: var(--superficie);
+}
+
+.estado-publico-caja h1,
+.estado-publico-caja h2,
+.estado-publico-caja p {
+  margin: 0;
+}
+
+.estado-publico-caja h1 {
+  font-size: 24px;
+}
+
+.estado-publico-caja h2 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.estado-publico-empresa {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.estado-publico-estado {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--borde-rojo);
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+
+.estado-publico-etiqueta {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgb(255 42 26 / 18%);
+  font-weight: 700;
+}
+
+.estado-publico-etiqueta[data-estado='LISTO_ENTREGA'],
+.estado-publico-etiqueta[data-estado='ENTREGADO'],
+.estado-publico-etiqueta[data-estado='TERMINADO'] {
+  background: rgb(53 208 127 / 22%);
+}
+
+.estado-publico-mensaje {
+  padding: 10px 12px;
+  border-left: 3px solid var(--rojo);
+  background: rgb(255 255 255 / 4%);
+}
+
+.estado-publico-dato {
+  color: var(--texto-suave);
+  font-size: 14px;
+}
+
+.estado-publico-tiempo {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.estado-publico-tiempo li {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid var(--borde);
+}
+
+.estado-publico-tiempo li:first-child {
+  border-left-color: var(--rojo);
+}
+
+.estado-publico-tiempo span,
+.estado-publico-caja footer {
+  color: var(--texto-suave);
+  font-size: 13px;
+}
+
+.estado-publico-error {
+  display: grid;
+  gap: 10px;
+}

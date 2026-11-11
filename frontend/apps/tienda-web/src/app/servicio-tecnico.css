@@ -1,0 +1,406 @@
+/* Servicio técnico: presentación y seguimiento del equipo. Prefijo st-. */
+.st-pagina {
+  display: grid;
+  gap: 20px;
+  padding-block: 24px 56px;
+  max-width: 880px;
+}
+
+.st-cabecera {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.st-cabecera h1 {
+  font-size: clamp(28px, 6vw, 40px);
+  line-height: 1.12;
+}
+
+.st-intro {
+  max-width: 60ch;
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+.st-puntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-soft);
+}
+
+.st-puntos li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.st-puntos svg {
+  color: var(--ok);
+}
+
+.st-tarjeta {
+  padding: clamp(18px, 4vw, 28px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.st-tarjeta h2 {
+  margin-bottom: 14px;
+  font-size: clamp(20px, 4vw, 24px);
+}
+
+.st-subtitulo {
+  margin-bottom: 12px;
+  font-size: clamp(20px, 4vw, 24px);
+}
+
+.st-consulta {
+  max-width: 560px;
+}
+
+.st-consulta .boton {
+  width: 100%;
+}
+
+@media (min-width: 560px) {
+  .st-consulta .boton {
+    width: auto;
+  }
+}
+
+/* Cómo funciona */
+.st-pasos {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .st-pasos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.st-paso {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+}
+
+.st-paso-icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.st-paso h3 {
+  margin-bottom: 4px;
+  font-size: 17px;
+}
+
+.st-paso p {
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+.st-paso-numero {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 12px;
+}
+
+/* Seguimiento */
+.st-cabecera-orden {
+  gap: 4px;
+}
+
+.st-empresa {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.st-equipo {
+  color: var(--ink-soft);
+  font-size: 18px;
+}
+
+.st-estado {
+  display: grid;
+  gap: 8px;
+  padding: clamp(18px, 4vw, 28px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--accent);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.st-estado.salida {
+  border-left-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.st-estado-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-tenue);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.st-estado-titulo {
+  font-family: var(--f-display), system-ui, sans-serif;
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.st-estado-texto {
+  max-width: 62ch;
+  color: var(--ink-soft);
+  font-size: 17px;
+}
+
+.st-mensaje {
+  padding: 12px 14px;
+  border-radius: var(--radio-chico);
+  background: var(--surface-2);
+  font-size: 15.5px;
+  overflow-wrap: anywhere;
+}
+
+.st-nota {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+}
+
+.st-datos {
+  display: grid;
+  gap: 12px 24px;
+  margin: 8px 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.st-datos dt {
+  color: var(--ink-tenue);
+  font-size: 13px;
+}
+
+.st-datos dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+  font-size: 15.5px;
+}
+
+/* Etapas: en celular van en vertical, en pantallas anchas en una sola fila */
+.st-etapas {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-etapa {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  color: var(--ink-tenue);
+  font-weight: 600;
+}
+
+.st-etapa:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 40px;
+  bottom: -12px;
+  width: 2px;
+  background: var(--line);
+}
+
+.st-etapa.hecha:not(:last-child)::after {
+  background: var(--ok);
+}
+
+.st-etapa-punto {
+  flex: none;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.st-etapa.hecha {
+  color: var(--ink);
+}
+
+.st-etapa.hecha .st-etapa-punto {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+.st-etapa.actual {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.st-etapa.actual .st-etapa-punto {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 0 0 5px var(--accent-soft);
+}
+
+@media (min-width: 760px) {
+  .st-etapas {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+  }
+
+  .st-etapa {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    min-height: 0;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .st-etapa:not(:last-child)::after {
+    left: calc(50% + 22px);
+    right: calc(-50% + 22px);
+    top: 15px;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+  }
+}
+
+/* Historial */
+.st-historial {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-historial li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.st-historial li:last-child {
+  border-bottom: 0;
+}
+
+.st-historial span {
+  color: var(--ink-tenue);
+  font-size: 14px;
+}
+
+/* Contacto */
+.st-contacto p {
+  color: var(--ink-soft);
+}
+
+.st-contacto-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.st-contacto-botones .boton {
+  flex: 1 1 200px;
+}
+
+@media (min-width: 560px) {
+  .st-contacto-botones .boton {
+    flex: 0 0 auto;
+  }
+}
+
+.st-direccion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 14.5px;
+}
+
+.st-direccion svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.st-otra {
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.st-otra a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.st-sin-resultado {
+  max-width: 620px;
+  margin-inline: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.st-sin-resultado h1 {
+  font-size: clamp(24px, 5vw, 30px);
+}
+
+.st-sin-resultado > p {
+  color: var(--ink-soft);
+}

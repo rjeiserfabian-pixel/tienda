@@ -1,0 +1,256 @@
+/* Cuenta del cliente: marco con navegación, secciones, direcciones y esqueletos. */
+.cta-marco {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* sin esto las pestañas con scroll ensanchan toda la página */
+  gap: 20px;
+  padding-block: 24px 56px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .cta-marco {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 32px;
+    padding-block: 36px 72px;
+  }
+}
+
+/* Navegación: pestañas con scroll en celular, columna en pantallas grandes */
+.cta-nav {
+  min-width: 0;
+}
+
+.cta-nav ul {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.cta-nav a,
+.cta-salir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+
+.cta-nav a[aria-current='page'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cta-nav a:hover,
+.cta-salir:hover {
+  color: var(--ink);
+  border-color: var(--ink-tenue);
+}
+
+@media (min-width: 900px) {
+  .cta-nav {
+    position: sticky;
+    top: calc(var(--alto-cabecera) + 16px);
+  }
+
+  .cta-nav ul {
+    flex-direction: column;
+    overflow: visible;
+    gap: 6px;
+  }
+
+  .cta-nav a,
+  .cta-salir {
+    width: 100%;
+    border-radius: var(--radio-chico);
+  }
+}
+
+.cta-contenido {
+  min-width: 0;
+  padding: clamp(18px, 4vw, 28px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.cta-contenido h1 {
+  font-size: clamp(24px, 4.5vw, 30px);
+  margin-bottom: 6px;
+}
+
+.cta-contenido h2 {
+  font-size: 18px;
+}
+
+.cta-sub {
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+
+.cta-nota {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.cta-form {
+  max-width: 560px;
+  margin-top: 16px;
+}
+
+.alerta + .cta-atajos {
+  margin-top: 18px;
+}
+
+/* Atajos del resumen */
+.cta-atajos {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.cta-atajos a {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--bg);
+  height: 100%;
+}
+
+.cta-atajos a:hover {
+  border-color: var(--accent);
+}
+
+.cta-atajos svg {
+  color: var(--accent);
+}
+
+.cta-atajos span {
+  font-size: 13.5px;
+  color: var(--ink-tenue);
+}
+
+/* Direcciones */
+.cta-direcciones {
+  display: grid;
+  gap: 12px;
+}
+
+.cta-direccion {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radio-chico);
+  background: var(--bg);
+}
+
+.cta-direccion.editando {
+  display: block;
+  margin-top: 4px;
+  border-color: var(--accent);
+}
+
+.cta-direccion.editando h2 {
+  margin-bottom: 14px;
+}
+
+.cta-direccion > svg {
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.cta-direccion-texto p {
+  line-height: 1.4;
+}
+
+.cta-direccion-texto .insignia {
+  margin-left: 8px;
+}
+
+.cta-tenue {
+  font-size: 13.5px;
+  color: var(--ink-tenue);
+}
+
+.cta-direccion-acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Pedidos: próximamente */
+.cta-proximamente {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  margin-top: 12px;
+  text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: var(--radio);
+  color: var(--ink-soft);
+}
+
+.cta-proximamente svg {
+  color: var(--accent);
+}
+
+/* Esqueletos mientras se sabe si hay sesión */
+.cta-esqueleto,
+.esqueleto-cuenta {
+  min-height: 56px;
+  border-radius: var(--radio);
+  background: linear-gradient(90deg, var(--surface-2), var(--surface), var(--surface-2));
+  background-size: 200% 100%;
+  animation: cta-brillo 1.4s ease-in-out infinite;
+}
+
+.cta-esqueleto.grande {
+  min-height: 280px;
+}
+
+.esqueleto-cuenta {
+  min-height: 320px;
+}
+
+@keyframes cta-brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-esqueleto,
+  .esqueleto-cuenta {
+    animation: none;
+  }
+}
+
+/* Botón «Mostrar» de la contraseña: sin el borde y fondo por defecto del botón */
+.campo-clave button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.campo-clave button:hover {
+  background: var(--accent-soft);
+}
