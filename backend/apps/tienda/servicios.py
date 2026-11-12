@@ -18,6 +18,10 @@ from .models import ConfiguracionTienda
 logger = logging.getLogger(__name__)
 
 RUTA_LOGO = "/api/v1/tienda/logo"
+# El logo se muestra a ~50 px de alto (hasta ~300 de ancho): 600×240 cubre pantallas retina sobrado.
+LOGO_MAX_ANCHO = 600
+LOGO_MAX_ALTO = 240
+LOGO_CALIDAD = 90
 
 
 def _borrar(campo) -> None:
@@ -65,12 +69,34 @@ def recortar_margenes(png: bytes) -> bytes:
         return png
 
 
+def reducir_logo(png: bytes) -> tuple[bytes, str]:
+    """Achica el logo y lo pasa a WebP (con transparencia): de ~200 KB a ~15 KB sin que se note.
+
+    Devuelve ``(contenido, extension)``. Si algo sale mal se deja el PNG tal cual (``"png"``).
+    """
+    try:
+        with Image.open(io.BytesIO(png)) as original:
+            imagen = original.convert("RGBA")
+        imagen.thumbnail((LOGO_MAX_ANCHO, LOGO_MAX_ALTO), Image.Resampling.LANCZOS)
+        salida = io.BytesIO()
+        imagen.save(salida, format="WEBP", quality=LOGO_CALIDAD, method=6)
+        return salida.getvalue(), "webp"
+    except (OSError, ValueError):
+        logger.warning("tienda_logo_no_reducido")
+        return png, "png"
+
+
+def tipo_de_logo(config: ConfiguracionTienda) -> str:
+    """Tipo de archivo del logo guardado (los logos viejos son PNG; los nuevos, WebP)."""
+    return "image/webp" if (config.logo.name or "").lower().endswith(".webp") else "image/png"
+
+
 @transaction.atomic
 def guardar_logo(config: ConfiguracionTienda, archivo) -> ConfiguracionTienda:
-    """Valida y re-codifica a PNG (mismas reglas que el logo de empresa) y lo guarda."""
-    contenido = recortar_margenes(servicio_logo.procesar(archivo))
+    """Valida (reglas del logo de empresa), recorta márgenes, lo achica a WebP y lo guarda."""
+    contenido, extension = reducir_logo(recortar_margenes(servicio_logo.procesar(archivo)))
     anterior = config.logo.name
-    config.logo.save(f"logo_{uuid.uuid4().hex}.png", ContentFile(contenido), save=False)
+    config.logo.save(f"logo_{uuid.uuid4().hex}.{extension}", ContentFile(contenido), save=False)
     config.logo_version = hashlib.sha256(contenido).hexdigest()[:12]
     try:
         config.save(update_fields=["logo", "logo_version"])

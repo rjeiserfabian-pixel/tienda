@@ -116,9 +116,36 @@ class TestLogo:
         assert ruta.startswith("/api/v1/tienda/logo/")
         archivo = APIClient().get(ruta)
         assert archivo.status_code == 200
-        assert archivo["Content-Type"] == "image/png"
+        assert archivo["Content-Type"] == "image/webp"  # los logos nuevos se guardan livianos
         assert "immutable" in archivo["Cache-Control"]
         b"".join(archivo.streaming_content)
+
+    def test_un_logo_grande_se_achica_y_pesa_mucho_menos(self, tienda):
+        import os
+
+        ruido = Image.frombytes("RGBA", (800, 320), os.urandom(800 * 320 * 4))
+        buffer = io.BytesIO()
+        ruido.save(buffer, format="PNG")
+        original = buffer.getvalue()
+        archivo = SimpleUploadedFile("logo.png", original)
+        r = cliente_de("admin").post(LOGO_ADMIN, {"logo": archivo}, format="multipart")
+        assert r.status_code == 200, r.content
+        servido = APIClient().get(_publica().json()["logo"])
+        contenido = b"".join(servido.streaming_content)
+        imagen = Image.open(io.BytesIO(contenido))
+        assert imagen.format == "WEBP"
+        assert imagen.width <= 600 and imagen.height <= 240
+        assert len(contenido) < len(original)
+
+    def test_un_logo_guardado_antes_como_png_se_sigue_sirviendo_como_png(self):
+        from types import SimpleNamespace
+
+        from apps.tienda import servicios
+
+        viejo = SimpleNamespace(logo=SimpleNamespace(name="tienda/1/logo_abc.png"))
+        nuevo = SimpleNamespace(logo=SimpleNamespace(name="tienda/1/logo_abc.webp"))
+        assert servicios.tipo_de_logo(viejo) == "image/png"
+        assert servicios.tipo_de_logo(nuevo) == "image/webp"
 
     def test_un_logo_nuevo_cambia_la_direccion(self, tienda):
         c = cliente_de("admin")

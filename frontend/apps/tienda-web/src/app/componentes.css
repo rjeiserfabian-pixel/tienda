@@ -1043,3 +1043,369 @@ button.enlace {
 .aviso-carrito-x:hover {
   background: var(--surface-2);
 }
+
+/* ---------- Barra inferior del celular ---------- */
+.barra-inf {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .barra-inf {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 40;
+    display: block;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    background: var(--grad-oscuro);
+    border-top: 1px solid rgb(255 255 255 / 10%);
+    box-shadow: 0 -8px 26px rgb(5 10 30 / 30%);
+  }
+
+  .barra-inf ul {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  .barra-inf a {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-height: 52px;
+    padding-top: 6px;
+    border-radius: 12px;
+    color: #aebbdc;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .barra-inf a[aria-current='page'] {
+    color: #fff;
+  }
+
+  .barra-inf a[aria-current='page'] svg {
+    color: color-mix(in srgb, var(--accent) 60%, #fff);
+  }
+
+  .barra-inf-icono {
+    position: relative;
+    display: grid;
+  }
+
+  .barra-inf-icono b {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--grad-acento);
+    color: var(--accent-ink);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* El final de la página y los avisos flotantes quedan por encima de la barra. */
+  body:has(.barra-inf) {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  body:has(.barra-inf) .barra-comparar {
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    padding-bottom: 10px;
+  }
+
+  body:has(.barra-inf) .aviso-carrito-zona {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Pie premium ---------- */
+.pie {
+  position: relative;
+  background:
+    radial-gradient(50% 120% at 90% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    var(--grad-oscuro);
+}
+
+.pie::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--grad-acento);
+}
+
+.pie h2 {
+  color: color-mix(in srgb, var(--accent) 55%, #fff);
+}
+
+/* ---------- Migas: se notan y se pueden tocar ---------- */
+.migas ol {
+  gap: 6px;
+  font-size: 13.5px;
+}
+
+.migas li:not(:last-child)::after {
+  margin-left: 0;
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.migas li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.migas li > a:hover {
+  border-color: transparent;
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+/* «Inicio» destaca: es la salida más usada. */
+.migas li:first-child > a {
+  border-color: transparent;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.migas li:first-child > a:hover {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.migas [aria-current] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---------- Tarjeta de producto: más diseño ---------- */
+.tar {
+  border-radius: 20px;
+}
+
+.tar::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  height: 4px;
+  background: var(--grad-acento);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+  pointer-events: none;
+}
+
+.tar:hover::after {
+  transform: scaleX(1);
+}
+
+.tar-foto img {
+  transition: transform 0.35s;
+}
+
+.tar:hover .tar-foto img {
+  transform: scale(1.05);
+}
+
+.tar-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+
+.tar-marca::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--grad-acento);
+}
+
+.tar-nombre {
+  color: var(--ink);
+}
+
+.tar-datos {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+}
+
+.tar-precio strong {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.tar-agregar {
+  min-height: 46px;
+  box-shadow: var(--brillo);
+  font-size: 15px;
+}
+
+/* «Ver todos»: botón, no un enlace perdido. */
+.ini-ver-todos {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  transition: background 0.15s, color 0.15s;
+}
+
+.ini-ver-todos:hover {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+/* ---------- Tarjetas más compactas en pantallas medianas y grandes ---------- */
+@media (min-width: 720px) {
+  .tar-foto {
+    aspect-ratio: 5 / 4;
+    overflow: hidden; /* sin esto la foto agranda la caja y las tarjetas quedan desiguales */
+  }
+
+  .tar-cuerpo {
+    gap: 5px;
+    padding: 12px 14px;
+  }
+
+  .tar-nombre {
+    -webkit-line-clamp: 2;
+    font-size: 14.5px;
+  }
+
+  .tar-accion {
+    padding: 0 12px 12px;
+  }
+
+  .tar-agregar {
+    min-height: 42px;
+  }
+}
+
+/* ---------- Menú «Todas las categorías»: más legible y con diseño ---------- */
+/* El panel está dentro de la cabecera oscura: sin esto heredaba el texto claro y los títulos casi no se veían. */
+.mega-panel {
+  overflow: hidden;
+  padding: 22px;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 22px;
+  color: var(--ink);
+  box-shadow: 0 22px 60px rgb(5 10 30 / 40%), 0 0 0 1px rgb(255 255 255 / 4%);
+}
+
+.mega-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--grad-acento);
+}
+
+.mega-rejilla {
+  gap: 16px;
+}
+
+.mega-familia {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mega-familia:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.mega-familia h3 {
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-size: 15.5px;
+}
+
+.mega-familia h3 a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.mega-icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.mega-familia li a {
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: var(--ink);
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mega-familia li a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.mega-familia li small {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mega-todo {
+  margin-top: auto;
+  padding: 8px 10px 0;
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.mega-todo:hover {
+  text-decoration: underline;
+}
+
+/* Las sugerencias del buscador también están dentro de la cabecera oscura: texto propio, no heredado. */
+.buscador-panel {
+  color: var(--ink);
+}

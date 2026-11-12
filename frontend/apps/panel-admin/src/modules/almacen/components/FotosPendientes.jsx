@@ -27,7 +27,7 @@ export default function FotosPendientes({ fotos, onCambio, deshabilitado }) {
         break
       }
       if (!FOTO_FORMATOS.includes(archivo.type)) notificar('error', `«${archivo.name}»: usa una foto JPG, PNG o WEBP.`)
-      else if (archivo.size > FOTO_MAX_BYTES) notificar('error', `«${archivo.name}» pesa más de 5 MB.`)
+      else if (archivo.size > FOTO_MAX_BYTES) notificar('error', `«${archivo.name}» pesa más de 15 MB.`)
       else nuevas.push({ archivo, vista: URL.createObjectURL(archivo) })
     }
     if (nuevas.length) onCambio([...fotos, ...nuevas])
@@ -39,7 +39,7 @@ export default function FotosPendientes({ fotos, onCambio, deshabilitado }) {
   }
 
   return (
-    <PanelTarjeta id="fotos" icono="camara" titulo="Fotos" descripcion={`Elige hasta ${FOTOS_MAX} fotos (JPG, PNG o WEBP, máx. 5 MB). Se suben al registrar el producto; la primera será la principal.`}>
+    <PanelTarjeta id="fotos" icono="camara" titulo="Fotos" descripcion={`Elige hasta ${FOTOS_MAX} fotos (JPG, PNG o WEBP, máx. 15 MB; se reducen solas). Se suben al registrar el producto; la primera será la principal.`}>
       <div className="fotos-grilla">
         {fotos.map((x, i) => (
           <figure key={x.vista} className={`foto-tarjeta${i === 0 ? ' principal' : ''}`}>

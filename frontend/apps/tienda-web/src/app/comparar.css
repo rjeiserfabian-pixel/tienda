@@ -507,3 +507,43 @@ body:has(.barra-comparar) .pie {
   height: 44px;
   border-radius: var(--radio-chico);
 }
+
+/* ---------- Estilo premium ---------- */
+.cmp-contenedor {
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+}
+
+.barra-comparar {
+  border-top-color: color-mix(in srgb, var(--accent) 25%, var(--line));
+  box-shadow: 0 -8px 26px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* ---------- «Comparar» en la tarjeta: botón redondo con icono; muestra el texto al pasar el mouse ---------- */
+.btn-comparar.tarjeta {
+  min-height: 38px;
+  padding: 0 11px;
+  border-color: transparent;
+  backdrop-filter: none;
+  background: var(--surface);
+}
+
+.btn-comparar.tarjeta span {
+  display: none;
+}
+
+@media (hover: hover) {
+  .btn-comparar.tarjeta:hover span,
+  .btn-comparar.tarjeta:focus-visible span {
+    display: inline;
+  }
+}
+
+.btn-comparar.tarjeta.activo {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.btn-comparar.tarjeta.activo span {
+  display: inline;
+}

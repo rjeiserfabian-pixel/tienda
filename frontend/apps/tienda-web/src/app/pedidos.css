@@ -236,3 +236,31 @@
 .ped-lineas strong {
   white-space: nowrap;
 }
+
+/* ---------- Estilo premium ---------- */
+.ped-gracias {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background:
+    radial-gradient(60% 90% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.ped-gracias::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--grad-acento);
+}
+
+.ped-check {
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ok) 12%, transparent);
+}
+
+.ped-check.espera {
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--warn) 12%, transparent);
+}

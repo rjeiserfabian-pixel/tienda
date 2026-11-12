@@ -496,3 +496,34 @@
     display: none;
   }
 }
+
+/* ---------- Estilo premium ---------- */
+.arm-paso,
+.arm-resumen {
+  border-radius: 20px;
+}
+
+.arm-paso-cab {
+  border-radius: 20px;
+}
+
+.arm-paso.abierto {
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.arm-paso.abierto .arm-num:not(.hecho) {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.arm-resumen {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background:
+    radial-gradient(70% 90% at 100% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    var(--surface);
+}
+
+.arm-barra {
+  border-top-color: color-mix(in srgb, var(--accent) 25%, var(--line));
+  box-shadow: 0 -8px 26px color-mix(in srgb, var(--accent) 14%, transparent);
+}

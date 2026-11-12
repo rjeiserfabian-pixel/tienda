@@ -1,6 +1,7 @@
 /* Ofertas: precio tachado, descuento, etiqueta y cuenta regresiva. */
 .insignia.oferta {
-  background: var(--accent);
+  background: var(--grad-acento);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent-ink);
   font-weight: 800;
 }
@@ -33,7 +34,7 @@
   margin: 4px 0;
   padding: 1px 7px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--grad-acento);
   color: var(--accent-ink);
   font-size: 12px;
   font-weight: 800;

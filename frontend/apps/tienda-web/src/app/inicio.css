@@ -133,7 +133,8 @@
 
 .ini-hero h1 {
   color: #fff;
-  font-size: clamp(2rem, 5.2vw, 3.5rem);
+  font-size: clamp(2.1rem, 4.6vw, 3.6rem);
+  line-height: 1.04;
   font-weight: 700;
 }
 
@@ -173,23 +174,62 @@
 }
 
 .ini-hero-visual {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  align-content: center;
+  position: relative;
+  min-height: 300px;
+  align-self: stretch;
+}
+
+/* Halo luminoso detrás del producto protagonista (un solo degradado). */
+.ini-hero-visual::before {
+  content: '';
+  position: absolute;
+  inset: 4% 6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 60%, transparent), transparent 72%);
 }
 
 .ini-hero-foto {
+  position: absolute;
   display: block;
-  aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 24px;
   background: #fff;
-  box-shadow: 0 12px 30px rgb(0 0 0 / 28%);
-  transition: transform 0.2s;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 38%);
+  transition: transform 0.25s;
 }
 
-.ini-hero-foto:hover {
+/* El primero es el protagonista: grande y al centro. */
+.ini-hero-foto:nth-child(1) {
+  inset: 6% 12% 6% 8%;
+  border-radius: 32px;
+  box-shadow: 0 26px 60px rgb(0 0 0 / 45%), 0 0 0 1px rgb(255 255 255 / 20%);
+}
+
+.ini-hero-foto:nth-child(2) {
+  width: 36%;
+  aspect-ratio: 1;
+  right: 0;
+  top: 0;
+  transform: rotate(6deg);
+}
+
+.ini-hero-foto:nth-child(3) {
+  width: 36%;
+  aspect-ratio: 1;
+  right: 4%;
+  bottom: 0;
+  transform: rotate(-5deg);
+}
+
+.ini-hero-foto:nth-child(2):hover {
+  transform: rotate(3deg) translateY(-4px);
+}
+
+.ini-hero-foto:nth-child(3):hover {
+  transform: rotate(-2deg) translateY(-4px);
+}
+
+.ini-hero-foto:nth-child(1):hover {
   transform: translateY(-4px);
 }
 
@@ -200,23 +240,34 @@
   object-fit: contain;
 }
 
+.ini-hero-chip {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--grad-oscuro);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Con una sola foto no hace falta la composición. */
 .ini-hero-visual.pocas {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 340px;
+  max-width: 360px;
+  min-height: 0;
+  aspect-ratio: 1;
 }
 
 @media (min-width: 900px) {
   .ini-hero-caja {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: 48px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 40px;
   }
 
-  .ini-hero-visual .ini-hero-foto:nth-child(even) {
-    transform: translateY(20px);
-  }
-
-  .ini-hero-visual .ini-hero-foto:nth-child(even):hover {
-    transform: translateY(16px);
+  .ini-hero-visual {
+    min-height: 460px;
   }
 }
 
@@ -499,4 +550,266 @@
     grid-template-columns: 1fr auto;
     align-items: center;
   }
+}
+
+/* ---------- Mosaico de categorías (la primera, más grande) ---------- */
+@media (min-width: 720px) {
+  .ini-cats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(86px, auto);
+  }
+
+  .ini-cats > li:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .ini-cats > li:first-child .ini-cat {
+    height: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 18px;
+    padding: 24px;
+    border-color: transparent;
+    background:
+      radial-gradient(70% 70% at 90% 0%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%),
+      var(--grad-oscuro);
+    color: #fff;
+  }
+
+  .ini-cats > li:first-child .ini-cat-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: var(--grad-acento);
+    color: var(--accent-ink);
+  }
+
+  .ini-cats > li:first-child .ini-cat-texto strong {
+    font-family: var(--f-display), sans-serif;
+    font-size: 1.6rem;
+    white-space: normal;
+  }
+
+  .ini-cats > li:first-child .ini-cat-texto small {
+    color: #b9c6e6;
+    font-size: 14px;
+  }
+
+  .ini-cats > li:not(:first-child) .ini-cat {
+    height: 100%;
+  }
+}
+
+@media (min-width: 720px) {
+  /* Con 4 categorías, la última ocupa el ancho que sobra (sin hueco en el mosaico). */
+  .ini-cats > li:nth-child(4):last-child {
+    grid-column: span 2;
+  }
+}
+
+/* =====================================================================
+   Estructura llamativa del inicio: franja oscura, tarjeta destacada,
+   títulos más marcados y aparición suave al hacer scroll.
+   ===================================================================== */
+
+/* Títulos de franja más marcados */
+.ini-seccion h2 {
+  letter-spacing: -0.025em;
+}
+
+@media (min-width: 720px) {
+  .ini-seccion-cab h2 {
+    font-size: clamp(1.7rem, 2.6vw, 2.2rem);
+  }
+}
+
+/* ---------- Franja oscura (Ofertas) ---------- */
+.ini-banda.oscura {
+  margin-block: 40px 8px;
+  padding-block: 44px 40px;
+  background:
+    radial-gradient(45% 80% at 85% 0%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%),
+    radial-gradient(35% 60% at 0% 100%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+    var(--grad-oscuro);
+  color: var(--navy-ink);
+}
+
+.ini-banda.oscura h2 {
+  color: #fff;
+}
+
+.ini-banda.oscura .subtitulo {
+  color: #b9c6e6;
+}
+
+.ini-banda.oscura .ini-ver-todos {
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+
+.ini-banda.oscura .ini-ver-todos:hover {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+/* Las tarjetas se despegan del fondo oscuro. */
+.ini-banda.oscura .tar {
+  border-color: transparent;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 35%);
+}
+
+/* ---------- Rejilla con tarjeta destacada ---------- */
+.ini-destacada {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ini-destacada > li {
+  display: flex;
+  min-width: 0;
+}
+
+.ini-destacada > li > * {
+  width: 100%;
+}
+
+.ini-destacada > li:first-child {
+  grid-column: span 2;
+}
+
+@media (min-width: 900px) {
+  .ini-destacada {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  /* El primero ocupa 2 columnas y se ve en horizontal: foto grande a la izquierda, datos a la derecha. */
+  .ini-destacada > li:first-child .tar-enlace {
+    flex-direction: row;
+  }
+
+  .ini-destacada > li:first-child .tar-foto {
+    flex: 1.1;
+    aspect-ratio: auto;
+    min-height: 300px;
+  }
+
+  .ini-destacada > li:first-child .tar-cuerpo {
+    flex: 1;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px;
+  }
+
+  .ini-destacada > li:first-child .tar-nombre {
+    font-family: var(--f-display), sans-serif;
+    font-size: 1.2rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .ini-destacada > li:first-child .tar-pie {
+    margin-top: 6px;
+  }
+
+  .ini-destacada > li:first-child .tar-precio strong {
+    font-size: 1.9rem;
+  }
+
+  .ini-destacada > li:first-child .tar-accion {
+    padding: 0 22px 20px;
+  }
+}
+
+/* ---------- Aparición suave al hacer scroll (solo CSS; sin soporte, se ve normal) ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ini-seccion:not(.ini-banda) > .contenedor,
+    .ini-banda > .contenedor {
+      animation: ini-aparece linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@keyframes ini-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Títulos con degradado ---------- */
+.ini-seccion:not(.ini-banda) .ini-seccion-cab h2 {
+  background: linear-gradient(90deg, var(--ink) 30%, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ini-banda.oscura .ini-seccion-cab h2 {
+  background: linear-gradient(90deg, #fff 35%, color-mix(in srgb, var(--accent) 55%, #fff));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ---------- Marcas: fichas grandes y vistosas ---------- */
+.ini-marcas {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.ini-marcas a {
+  position: relative;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 78px;
+  overflow: hidden;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background:
+    radial-gradient(80% 120% at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    var(--surface);
+  font-family: var(--f-display), sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.ini-marcas a::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: var(--grad-acento);
+  transform: scaleX(0);
+  transition: transform 0.25s;
+}
+
+.ini-marcas a:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.ini-marcas a:hover::after {
+  transform: scaleX(1);
+}
+
+.ini-marcas small {
+  font-family: var(--f-body), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
 }

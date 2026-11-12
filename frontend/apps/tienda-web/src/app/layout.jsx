@@ -1,5 +1,6 @@
 import { Figtree, Sora } from 'next/font/google'
 import AvisoCarrito from '@/components/AvisoCarrito'
+import BarraInferior from '@/components/BarraInferior'
 import BarraComparar from '@/components/BarraComparar'
 import Cabecera from '@/components/Cabecera'
 import Mantenimiento from '@/components/Mantenimiento'
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }) {
             {children}
             <Pie menu={menu} config={config} />
             <BarraComparar />
+            <BarraInferior />
             <AvisoCarrito />
             </ProveedorComparar>
           </Proveedores>

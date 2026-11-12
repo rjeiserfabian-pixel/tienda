@@ -35,12 +35,27 @@
   gap: 14px;
   padding: clamp(16px, 4vw, 24px);
   border: 1px solid var(--line);
-  border-radius: var(--radio);
+  border-radius: 20px;
   background: var(--surface);
+  box-shadow: var(--sombra);
 }
 
 .com-resumen {
-  box-shadow: var(--sombra);
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background:
+    radial-gradient(70% 90% at 100% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.com-resumen::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--grad-acento);
 }
 
 .com-paso h2,
@@ -66,7 +81,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--grad-acento);
+  box-shadow: var(--brillo);
   color: var(--accent-ink);
   font-size: 14px;
   font-weight: 800;
@@ -103,12 +119,13 @@
 }
 
 .com-opcion:hover {
-  border-color: var(--ink-tenue);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
 }
 
 .com-opcion.activa {
   border-color: var(--accent);
   background: var(--accent-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .com-opcion.apagada {
@@ -285,7 +302,8 @@
 
 .com-resumen .car-total dd {
   font-family: var(--f-display), sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  color: var(--accent);
 }
 
 /* IGV desglosado y pantalla «Procesando…» */
@@ -337,5 +355,13 @@
 @media (prefers-reduced-motion: reduce) {
   .com-spinner {
     animation-duration: 3s;
+  }
+}
+
+/* El resumen arranca a la altura de los pasos (ver nota en carrito.css). */
+@media (min-width: 960px) {
+  .com-resumen {
+    position: sticky;
+    top: 156px;
   }
 }

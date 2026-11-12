@@ -48,6 +48,6 @@ export const TIPOS_PRODUCTO = [
 ]
 
 /** Foto máxima y formatos que acepta el servidor (se revisa antes de subir). */
-export const FOTO_MAX_BYTES = 5 * 1024 * 1024
+export const FOTO_MAX_BYTES = 15 * 1024 * 1024
 export const FOTO_FORMATOS = ['image/jpeg', 'image/png', 'image/webp']
 export const FOTOS_MAX = 8

@@ -252,3 +252,27 @@
   line-height: 1;
   box-shadow: 0 0 0 2px var(--navy);
 }
+
+/* ---------- Estilo premium ---------- */
+.tarjeta-centrada {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.tarjeta-centrada::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--grad-acento);
+}
+
+.campo input:focus-visible,
+.campo select:focus-visible,
+.campo textarea:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}

@@ -327,7 +327,7 @@ class LogoTiendaView(APIView):
             archivo = config.logo.open("rb")
         except (FileNotFoundError, ValueError):
             raise Http404 from None
-        respuesta = FileResponse(archivo, content_type="image/png")
+        respuesta = FileResponse(archivo, content_type=servicios.tipo_de_logo(config))
         respuesta["Cache-Control"] = "private, no-store"
         respuesta["X-Content-Type-Options"] = "nosniff"
         return respuesta

@@ -50,7 +50,12 @@ export default function MenuCategorias({ familias }) {
             {familias.map((f) => (
               <section key={f.slug} className="mega-familia" aria-label={f.nombre}>
                 <h3>
-                  <Link href={`/familia/${f.slug}`}>{f.nombre}</Link>
+                  <Link href={`/familia/${f.slug}`}>
+                    <span className="mega-icono" aria-hidden="true">
+                      <Icono nombre="etiqueta" tam={18} />
+                    </span>
+                    {f.nombre}
+                  </Link>
                 </h3>
                 <ul>
                   {f.categorias.map((c) => (
@@ -61,6 +66,9 @@ export default function MenuCategorias({ familias }) {
                     </li>
                   ))}
                 </ul>
+                <Link href={`/familia/${f.slug}`} className="mega-todo">
+                  Ver todo <span aria-hidden="true">→</span>
+                </Link>
               </section>
             ))}
           </div>

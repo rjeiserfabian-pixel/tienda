@@ -254,3 +254,41 @@
 .campo-clave button:hover {
   background: var(--accent-soft);
 }
+
+/* ---------- Estilo premium ---------- */
+.cta-nav a[aria-current='page'] {
+  border-color: transparent;
+  background: var(--grad-acento);
+  box-shadow: var(--brillo);
+  color: var(--accent-ink);
+}
+
+.cta-nav a:hover,
+.cta-salir:hover {
+  border-color: var(--accent);
+}
+
+.cta-contenido {
+  border-radius: 22px;
+}
+
+.cta-contenido h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cta-contenido h1::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 1em;
+  border-radius: 4px;
+  background: var(--grad-acento);
+}
+
+@media (min-width: 900px) {
+  .cta-nav a[aria-current='page'] {
+    box-shadow: var(--brillo);
+  }
+}

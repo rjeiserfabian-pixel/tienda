@@ -75,7 +75,7 @@ export default function FotosProducto({ productoId, puedeEditar }) {
         continue
       }
       if (archivo.size > FOTO_MAX_BYTES) {
-        notificar('error', `«${archivo.name}» pesa más de 5 MB.`)
+        notificar('error', `«${archivo.name}» pesa más de 15 MB.`)
         continue
       }
       try {
@@ -94,7 +94,7 @@ export default function FotosProducto({ productoId, puedeEditar }) {
   }
 
   return (
-    <PanelTarjeta id="fotos" icono="camara" titulo="Fotos" descripcion={`Hasta ${FOTOS_MAX} fotos (JPG, PNG o WEBP, máx. 5 MB). La primera es la principal y es la que se ve en la tienda; arrastra las fotos o usa las flechas para ordenarlas.`}>
+    <PanelTarjeta id="fotos" icono="camara" titulo="Fotos" descripcion={`Hasta ${FOTOS_MAX} fotos (JPG, PNG o WEBP, máx. 15 MB; se reducen solas). La primera es la principal y es la que se ve en la tienda; arrastra las fotos o usa las flechas para ordenarlas.`}>
       <div className="fotos-grilla">
         {fotos.map((foto, indice) => (
           <figure

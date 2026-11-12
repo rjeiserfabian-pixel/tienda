@@ -58,8 +58,14 @@
   gap: 6px 14px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: var(--radio);
+  border-radius: 18px;
   background: var(--surface);
+  box-shadow: var(--sombra);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.car-linea:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
 }
 
 @media (min-width: 640px) {
@@ -162,13 +168,26 @@
 
 /* Resumen */
 .car-resumen {
+  position: relative;
   display: grid;
   gap: 14px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radio);
-  background: var(--surface);
-  box-shadow: var(--sombra);
+  overflow: hidden;
+  padding: 22px 20px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+  border-radius: 20px;
+  background:
+    radial-gradient(70% 90% at 100% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* Filita de degradado arriba del resumen */
+.car-resumen::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--grad-acento);
 }
 
 .car-resumen h2 {
@@ -207,7 +226,8 @@
 
 .car-total dd {
   font-family: var(--f-display), sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  color: var(--accent);
 }
 
 .car-igv {
@@ -249,5 +269,46 @@
 
 .car-vacio-cats a:hover {
   border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--accent);
+}
+
+/* ---------- Botones «Vaciar carrito» y «Quitar»: se ven como botones ---------- */
+.car-vaciar,
+.car-quitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  min-height: 38px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.car-quitar {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13.5px;
+}
+
+.car-vaciar:hover,
+.car-quitar:hover {
+  border-color: color-mix(in srgb, var(--bad) 55%, var(--line));
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* El resumen arranca a la altura de los productos y, al bajar, queda justo debajo de la cabecera.
+   (Antes se desplazaba 80 px: «position: relative» le ganaba a «sticky».) */
+@media (min-width: 960px) {
+  .car-resumen {
+    position: sticky;
+    top: 156px;
+  }
 }

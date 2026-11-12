@@ -384,3 +384,44 @@ ul {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ---------- Pulido final ---------- */
+/* Un halo azul muy suave arriba de toda la tienda (un solo degradado, sin imágenes). */
+body {
+  background:
+    radial-gradient(90% 420px at 50% 0, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+    var(--bg);
+  background-repeat: no-repeat;
+}
+
+.estado-vacio {
+  margin-block: 24px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 24px;
+  background:
+    radial-gradient(60% 100% at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+    var(--surface);
+}
+
+.estado-vacio .insignia {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.estado-vacio h1 {
+  color: var(--ink);
+}
+
+/* Botón secundario con presencia: borde y texto de acento. */
+.boton.secundario {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  color: var(--accent);
+}
+
+.boton.secundario:hover {
+  background: var(--accent-soft);
+}

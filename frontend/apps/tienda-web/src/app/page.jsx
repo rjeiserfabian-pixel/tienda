@@ -3,12 +3,12 @@ import CarruselBanners from '@/components/CarruselBanners'
 import Icono from '@/components/Icono'
 import SeccionProductos from '@/components/SeccionProductos'
 import { obtenerBanners, obtenerConfiguracion, obtenerInicio, obtenerMenu, obtenerProductos } from '@/lib/api'
-import { enlaceWhatsapp } from '@/lib/format'
+import { enlaceWhatsapp, soles } from '@/lib/format'
 import './inicio.css'
 
 export const revalidate = 60
 
-const MAX_COLLAGE = 4
+const MAX_COLLAGE = 3
 const MAX_CATEGORIAS = 12
 
 /** Destacados y novedades; si el negocio aún no marcó ninguno, se muestran los últimos productos. */
@@ -37,6 +37,9 @@ export default async function Inicio() {
     servicio.visible && servicio.titulo && servicio.texto && { icono: 'llave', titulo: 'Servicio técnico', texto: servicio.texto },
     whatsapp && { icono: 'chat', titulo: 'Atención personalizada', texto: 'Escríbenos por WhatsApp y te ayudamos a elegir.' },
   ].filter(Boolean)
+  // Las franjas de productos que sí tienen datos se alternan: oscura, clara, oscura… (así la página no es uniforme).
+  const franjas = [ofertas, destacados, novedades].filter((lista) => lista.length > 0)
+  const tonoDe = (lista) => (franjas.indexOf(lista) % 2 === 0 ? 'oscuro' : 'claro')
   const palabras = (portada.titulo || nombre).split(' ')
   const ultima = palabras.length > 1 ? palabras.pop() : null
   const categorias = menu.familias.flatMap((f) => f.categorias).slice(0, MAX_CATEGORIAS)
@@ -110,6 +113,7 @@ export default async function Inicio() {
                 <div className={`ini-hero-visual${collage.length < 3 ? ' pocas' : ''}`} aria-label="Productos destacados">
                   {collage.map((p, i) => (
                     <Link key={p.id} href={`/producto/${p.slug}`} className="ini-hero-foto" aria-label={p.nombre}>
+                      {i > 0 && soles(p.precio_mostrar) && <span className="ini-hero-chip">{soles(p.precio_mostrar)}</span>}
                       <img
                         src={p.foto}
                         alt=""
@@ -184,6 +188,8 @@ export default async function Inicio() {
         descripcion="Precios especiales por tiempo limitado."
         productos={ofertas}
         href="/ofertas"
+        variante="destacada"
+        tono={tonoDe(ofertas)}
       />
 
       <SeccionProductos
@@ -192,6 +198,7 @@ export default async function Inicio() {
         descripcion="Lo que más recomendamos."
         productos={destacados}
         href="/buscar?destacado=1"
+        tono={tonoDe(destacados)}
       />
 
       <SeccionProductos
@@ -201,6 +208,7 @@ export default async function Inicio() {
         productos={novedades}
         href="/buscar?nuevo=1"
         variante="rejilla"
+        tono={tonoDe(novedades)}
       />
 
       {menu.marcas.length > 0 && (

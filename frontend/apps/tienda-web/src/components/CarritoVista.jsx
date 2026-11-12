@@ -97,7 +97,7 @@ function Linea({ linea, fijar, quitar }) {
             </button>
           </div>
           <button type="button" className="car-quitar" onClick={() => quitar(linea.producto)}>
-            Quitar
+            <Icono nombre="basura" tam={15} /> Quitar
           </button>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function CarritoVista({ categorias = [] }) {
       <div className="car-cabecera">
         <h1 className="titulo-pagina">Mi carrito</h1>
         <button type="button" className="car-vaciar" onClick={vaciar}>
-          Vaciar carrito
+          <Icono nombre="basura" tam={16} /> Vaciar carrito
         </button>
       </div>
       <div className="car-rejilla">

@@ -247,7 +247,7 @@ class LogoView(_Publica):
         except (FileNotFoundError, ValueError):
             logger.warning("tienda_logo_sin_archivo")
             raise Http404 from None
-        respuesta = FileResponse(archivo, content_type="image/png")
+        respuesta = FileResponse(archivo, content_type=servicios.tipo_de_logo(config))
         respuesta["Cache-Control"] = "public, max-age=31536000, immutable"
         respuesta["X-Content-Type-Options"] = "nosniff"
         return respuesta

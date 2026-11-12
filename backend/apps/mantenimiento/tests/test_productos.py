@@ -425,6 +425,21 @@ class TestFotos:
         gif = SimpleUploadedFile("a.gif", buffer.getvalue(), "image/gif")
         assert subir(base["api"], producto, gif).status_code == 400
 
+    def test_una_foto_de_celular_de_varios_mb_se_acepta_y_se_reduce(self, base):
+        import os
+
+        # Ruido: no se comprime en JPEG, así pesa varios MB como una foto real del celular.
+        ruido = Image.frombytes("RGB", (3200, 2400), os.urandom(3200 * 2400 * 3))
+        buffer = io.BytesIO()
+        ruido.save(buffer, format="JPEG", quality=95)
+        assert buffer.tell() > 5 * 1024 * 1024  # antes se rechazaba (límite de 5 MB)
+        archivo = SimpleUploadedFile("celular.jpg", buffer.getvalue(), content_type="image/jpeg")
+        r = subir(base["api"], crear(base), archivo)
+        assert r.status_code == 201, r.content
+        foto = FotoProducto.objects.sin_ambito().get()
+        assert foto.imagen.size < 2 * 1024 * 1024  # la grande queda mucho más liviana
+        assert foto.miniatura.size < 100 * 1024
+
     def test_una_foto_muy_pesada_se_rechaza(self, base, monkeypatch):
         monkeypatch.setattr(servicio_fotos, "TAMANO_MAXIMO", 100)
         r = subir(base["api"], crear(base), png(200, 200))

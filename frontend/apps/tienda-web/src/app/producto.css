@@ -40,9 +40,10 @@
 .prod-pista-caja {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 24px;
   background: #fff;
+  box-shadow: 0 14px 40px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .prod-pista {
@@ -156,7 +157,7 @@
 
 .prod-puntos li.activo {
   width: 22px;
-  background: var(--accent);
+  background: var(--grad-acento);
 }
 
 .prod-miniaturas {
@@ -178,6 +179,7 @@
 
 .prod-miniaturas button.activa {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .prod-miniaturas img {
@@ -318,10 +320,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px 16px;
-  padding: 18px 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--radio);
-  background: var(--surface);
+  padding: 18px 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 20px;
+  background:
+    radial-gradient(60% 160% at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: var(--sombra);
 }
 
 .prod-precio {
@@ -359,8 +364,12 @@
 
 .prod-puntos-lista svg {
   flex: none;
-  margin-top: 3px;
-  color: var(--ok);
+  box-sizing: content-box;
+  margin-top: 1px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--grad-acento);
+  color: var(--accent-ink);
 }
 
 .prod-comprar {
@@ -385,8 +394,6 @@
 .prod-garantias {
   display: grid;
   gap: 10px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
   color: var(--ink-soft);
   font-size: 14.5px;
 }
@@ -395,10 +402,18 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
 }
 
 .prod-garantias svg {
   flex: none;
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 12px;
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
@@ -427,6 +442,7 @@
 
 .prod-secciones-nav a:hover {
   border-color: var(--accent);
+  background: var(--accent-soft);
   color: var(--accent);
 }
 
@@ -445,12 +461,25 @@
   gap: 16px;
   padding: clamp(18px, 3vw, 30px);
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 22px;
   background: var(--surface);
+  box-shadow: var(--sombra);
 }
 
 .prod-bloque h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+}
+
+.prod-bloque h2::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 1.1em;
+  border-radius: 4px;
+  background: var(--grad-acento);
 }
 
 .prod-texto {
@@ -501,7 +530,7 @@
 }
 
 .prod-spec-fila:nth-child(odd) {
-  background: var(--bg);
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
 }
 
 .prod-spec-fila dt {
@@ -576,10 +605,9 @@
   justify-content: space-between;
   gap: 14px;
   padding: 10px max(16px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  border-top: 1px solid var(--line);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 -6px 22px rgb(15 21 34 / 10%);
+  border-top: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 -8px 26px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .prod-barra-precio {
@@ -607,4 +635,107 @@
   .prod-barra {
     display: none;
   }
+}
+
+/* ---------- Tamaños más cómodos (laptop, pantallas grandes y celular) ---------- */
+.prod-titulo {
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+  line-height: 1.25;
+}
+
+.prod-precio strong {
+  font-size: clamp(1.6rem, 3.6vw, 2.1rem);
+}
+
+.prod-precio-caja {
+  padding: 14px 18px;
+}
+
+.prod-info {
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .prod-principal {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  /* La foto no pasa de ~520 px de alto: el precio y el botón de compra se ven sin bajar. */
+  .prod-ampliar {
+    aspect-ratio: auto;
+    height: min(520px, calc(100vh - 300px));
+    min-height: 340px;
+  }
+
+  .prod-pista-caja {
+    border-radius: 22px;
+  }
+}
+
+/* ---------- Especificaciones: tarjetas por grupo, en columnas sin huecos ---------- */
+.prod-specs {
+  display: block;
+  column-gap: 22px;
+}
+
+@media (min-width: 900px) {
+  .prod-specs {
+    column-count: 2;
+  }
+}
+
+.prod-spec-grupo {
+  break-inside: avoid;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.prod-spec-grupo h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 16px;
+  background: linear-gradient(90deg, var(--accent-soft), transparent);
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-size: 12.5px;
+}
+
+.prod-spec-grupo h3::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--grad-acento);
+}
+
+.prod-spec-grupo dl {
+  border: 0;
+  border-radius: 0;
+}
+
+.prod-spec-fila {
+  padding: 10px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.prod-spec-fila:first-child {
+  border-top: 0;
+}
+
+.prod-spec-fila:nth-child(odd) {
+  background: transparent;
+}
+
+.prod-spec-fila:hover {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.prod-spec-fila dt {
+  color: var(--ink-soft);
 }

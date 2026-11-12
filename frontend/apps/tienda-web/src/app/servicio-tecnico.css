@@ -404,3 +404,18 @@
 .st-sin-resultado > p {
   color: var(--ink-soft);
 }
+
+/* ---------- Estilo premium ---------- */
+.st-tarjeta {
+  border-radius: 22px;
+}
+
+.st-paso-numero {
+  background: var(--grad-acento);
+  color: var(--accent-ink);
+}
+
+.st-etapa.actual .st-etapa-punto {
+  background: var(--grad-acento);
+  border-color: transparent;
+}

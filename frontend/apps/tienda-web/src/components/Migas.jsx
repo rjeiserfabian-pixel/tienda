@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { urlAbsoluta } from '@/lib/format'
+import Icono from './Icono'
 import JsonLd from './JsonLd'
 
 /**
@@ -23,7 +24,10 @@ export default function Migas({ items }) {
         {items.map((it, i) => (
           <li key={`${it.nombre}-${i}`}>
             {it.href && i < items.length - 1 ? (
-              <Link href={it.href}>{it.nombre}</Link>
+              <Link href={it.href}>
+                {i === 0 && it.href === '/' && <Icono nombre="casa" tam={15} />}
+                {it.nombre}
+              </Link>
             ) : (
               <span aria-current={i === items.length - 1 ? 'page' : undefined}>{it.nombre}</span>
             )}

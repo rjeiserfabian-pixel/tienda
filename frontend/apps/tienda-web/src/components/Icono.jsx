@@ -26,6 +26,8 @@ const TRAZOS = {
   menos: 'M5 12h14',
   candado: 'M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3',
   reloj: 'M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18Zm0-13v4.5l3 1.5',
+  casa: 'M3 11 12 4l9 7M5 10v10h14V10M10 20v-6h4v6',
+  cuadricula: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
   cpu: 'M7 7h10v10H7zM10 10h4v4h-4zM9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3',
 }
 

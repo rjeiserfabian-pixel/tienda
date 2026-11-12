@@ -21,7 +21,8 @@ from .models import FotoProducto
 
 logger = logging.getLogger(__name__)
 
-TAMANO_MAXIMO = 5 * 1024 * 1024  # 5 MB por foto
+# 15 MB por foto: se reduce sola (WebP, 1600 px), así se aceptan las fotos directas del celular.
+TAMANO_MAXIMO = 15 * 1024 * 1024
 PIXELES_MAXIMOS = 40_000_000  # evita las «bombas» de descompresión
 FORMATOS = {"JPEG", "PNG", "WEBP"}
 MAX_FOTOS = 8
@@ -40,13 +41,17 @@ def _a_webp(imagen: Image.Image, lado: int, calidad: int) -> bytes:
 def procesar(archivo) -> tuple[bytes, bytes]:
     """Devuelve ``(imagen_grande, miniatura)`` ya re-codificadas, o lanza ``ImagenInvalida``."""
     if archivo.size > TAMANO_MAXIMO:
-        raise ImagenInvalida("La foto pesa más de 5 MB.")
+        raise ImagenInvalida("La foto pesa más de 15 MB.")
     try:
         with Image.open(archivo) as original:
             if original.format not in FORMATOS:
                 raise ImagenInvalida("Usa una foto JPG, PNG o WEBP.")
             if original.width * original.height > PIXELES_MAXIMOS:
                 raise ImagenInvalida("La imagen es demasiado grande.")
+            if original.format == "JPEG":
+                # Las fotos del celular son enormes: se decodifican ya reducidas (≥ LADO_GRANDE)
+                # y así se ahorra memoria.
+                original.draft("RGB", (LADO_GRANDE, LADO_GRANDE))
             original.load()  # decodifica todo: detecta archivos truncados o corruptos
             imagen = ImageOps.exif_transpose(original)
             if imagen.mode in ("RGBA", "LA", "P"):  # la transparencia se pasa a fondo blanco
