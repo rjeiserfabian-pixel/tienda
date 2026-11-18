@@ -29,6 +29,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from apps.auditoria.servicios import registrar
+from apps.caja import servicios as caja
 from apps.core.tenant import contexto_tenant
 from apps.mantenimiento.models import (
     Cliente,
@@ -44,12 +45,13 @@ from apps.ventas.cuentas_web import CUENTA_COBRA, CUENTA_PUENTE
 from apps.ventas.exceptions import VentaInvalida
 from apps.ventas.models import CobroVenta, CuentaDeCobro
 
-from . import catalogo, culqi, series_pedido
+from . import adelantos, avisos, carrito_abandonado, catalogo, culqi, cupones, series_pedido
 from .exceptions import (
     CorreoSinConfirmar,
     PagoEnProceso,
     PagoNoDisponible,
     PagoRechazado,
+    PedidoInvalido,
     PedidoNoEncontrado,
     PedidoVencido,
 )
@@ -73,6 +75,7 @@ MAX_REINTENTOS_COMPROBANTE = 12  # cada 5 minutos: una hora
 YA_COBRADOS = frozenset(
     {
         Estado.PAGADO,
+        Estado.ADELANTO_PAGADO,
         Estado.EN_PREPARACION,
         Estado.LISTO_PARA_RECOJO,
         Estado.ENVIADO,
@@ -134,6 +137,8 @@ def _abrir_intento(cuenta: CuentaCliente, numero: str) -> tuple[PedidoTienda, In
             raise PedidoNoEncontrado()
         if pedido.estado in YA_COBRADOS:
             raise PagoEnProceso("Este pedido ya está pagado.")
+        if pedido.pago_metodo != PedidoTienda.PagoMetodo.CULQI:
+            raise PedidoInvalido("Este pedido se paga por transferencia: sube tu comprobante.")
         if pedido.estado != Estado.PENDIENTE_PAGO or pedido.expira_en <= ahora:
             raise PedidoVencido()
         intentos = IntentoPago.objects.sin_ambito().filter(pedido=pedido)
@@ -149,7 +154,7 @@ def _abrir_intento(cuenta: CuentaCliente, numero: str) -> tuple[PedidoTienda, In
         ):
             raise PagoEnProceso()
         intento = IntentoPago.objects.sin_ambito().create(
-            organizacion_id=pedido.organizacion_id, pedido=pedido, monto=pedido.total
+            organizacion_id=pedido.organizacion_id, pedido=pedido, monto=pedido.monto_a_cobrar
         )
     return pedido, intento
 
@@ -173,7 +178,8 @@ def pagar(cuenta: CuentaCliente, numero: str, token: str) -> PedidoTienda:
         cargo = culqi.crear_cargo(
             config.culqi_llave_secreta,
             token_id=token,
-            monto_centimos=_centimos(pedido.total),  # SIEMPRE el total guardado del pedido
+            # SIEMPRE lo guardado del pedido: el total, o solo el adelanto si así se acordó.
+            monto_centimos=_centimos(pedido.monto_a_cobrar),
             correo=cuenta.correo,
             descripcion=f"Pedido {pedido.numero}",
             pedido=pedido.numero,
@@ -246,6 +252,41 @@ def _preparar_cuentas(organizacion_id: int, empresas: list[Empresa], cobra: Empr
     return pago
 
 
+def _preparar_cuentas_transferencia(
+    organizacion_id: int, empresas: list[Empresa], cobra: Empresa, cuenta: CuentaFinanciera
+) -> MedioPago:
+    """El método de pago «Transferencia: <cuenta>» y, en cada empresa, la cuenta donde entra.
+
+    Cada cuenta que se ofrece tiene su propio método de pago, así el dinero entra siempre a la
+    cuenta que el cliente eligió. Es idempotente.
+    """
+    nombre = f"Transferencia: {cuenta.nombre}"[:60]
+    pago = (
+        MedioPago.objects.sin_ambito()
+        .filter(organizacion_id=organizacion_id, nombre=nombre)
+        .first()
+    )
+    if pago is None:
+        pago = MedioPago.objects.sin_ambito().create(
+            organizacion_id=organizacion_id, nombre=nombre, tipo=MedioPago.Tipo.TRANSFERENCIA
+        )
+    for empresa in empresas:
+        destino = cuenta if empresa.pk == cobra.pk else _cuenta_de(empresa, CUENTA_PUENTE)
+        fila = (
+            CuentaDeCobro.objects.sin_ambito()
+            .filter(empresa=empresa, medio_pago=pago, sucursal__isnull=True)
+            .first()
+        )
+        if fila is None:
+            CuentaDeCobro.objects.sin_ambito().create(
+                empresa=empresa, medio_pago=pago, cuenta=destino
+            )
+        elif fila.cuenta_id != destino.pk:
+            fila.cuenta = destino
+            fila.save(update_fields=["cuenta"])
+    return pago
+
+
 def _cliente_real(pedido: PedidoTienda, cuenta: CuentaCliente) -> Cliente:
     """El cliente del sistema (por su documento); se crea la primera vez y se enlaza a la cuenta."""
     tipo = pedido.documento_tipo or "OTRO"
@@ -303,18 +344,36 @@ def _lista_de(organizacion_id: int) -> ListaPrecio:
     return lista
 
 
-def _registrar_venta(pedido: PedidoTienda, medio: str):
-    """Crea la venta (un comprobante por empresa), el cobro y las deudas (en la transacción)."""
-    config = _config_activa_para_venta(pedido.organizacion_id)
+def _registrar_venta(
+    pedido: PedidoTienda,
+    medio: str,
+    *,
+    saldo: dict | None = None,
+    transferencia: CuentaFinanciera | None = None,
+):
+    """Crea la venta (un comprobante por empresa), el cobro y las deudas (en la transacción).
+
+    Con ``transferencia`` (la cuenta que recibió el dinero) el pago fue por transferencia o
+    depósito y el cobro entra a esa cuenta, no a la de Culqi.
+
+    Con ``saldo`` (``medio_pago``, ``referencia``, ``sucursal``) es la venta de un pedido con
+    adelanto: el adelanto ya pagado se descuenta como cobro previo y solo se cobra el saldo.
+    """
     empresas = {
         e.pk: e
         for e in Empresa.objects.sin_ambito().filter(
             organizacion_id=pedido.organizacion_id, estado=EstadoRegistro.ACTIVO
         )
     }
-    cobra = empresas.get(config.empresa_cobra_id)
-    if cobra is None:
-        raise VentaInvalida("La empresa que cobra con Culqi no está activa.")
+    if transferencia is not None:
+        cobra = empresas.get(transferencia.empresa_id)
+        if cobra is None:
+            raise VentaInvalida("La empresa dueña de la cuenta de la transferencia no está activa.")
+    else:
+        config = _config_activa_para_venta(pedido.organizacion_id)
+        cobra = empresas.get(config.empresa_cobra_id)
+        if cobra is None:
+            raise VentaInvalida("La empresa que cobra con Culqi no está activa.")
     lineas = list(
         LineaPedido.objects.sin_ambito()
         .filter(pedido=pedido)
@@ -336,18 +395,51 @@ def _registrar_venta(pedido: PedidoTienda, medio: str):
         for ln in lineas
     ]
     involucradas = [empresas[e] for e in {ln.empresa_id for ln in lineas} | {cobra.pk}]
-    pago = _preparar_cuentas(pedido.organizacion_id, involucradas, cobra, medio)
+    if transferencia is not None:
+        pago = _preparar_cuentas_transferencia(
+            pedido.organizacion_id, involucradas, cobra, transferencia
+        )
+    else:
+        pago = _preparar_cuentas(pedido.organizacion_id, involucradas, cobra, medio)
     cuenta = CuentaCliente.objects.sin_ambito().get(pk=pedido.cuenta_id)
+    if saldo is None:
+        cobros_entrada = [
+            ventas.CobroEntrada(
+                medio_pago=pago,
+                monto=pedido.total,
+                referencia=pedido.voucher_operacion
+                if transferencia is not None
+                else pedido.culqi_cargo_id,
+            )
+        ]
+        previos, sucursal = None, None
+    else:
+        # El adelanto ya entró a la cuenta de Culqi: aquí solo se descuenta del comprobante.
+        previos = [
+            ventas.CobroPrevio(
+                empresa=cobra,
+                monto=pedido.adelanto_monto,
+                medio_pago=pago,
+                cuenta=ventas.resolver_cuenta(cobra, pago, None, "PEN"),
+                referencia=pedido.culqi_cargo_id,
+            )
+        ]
+        cobros_entrada = [
+            ventas.CobroEntrada(
+                medio_pago=saldo["medio_pago"],
+                monto=pedido.saldo,
+                referencia=saldo.get("referencia", ""),
+            )
+        ]
+        sucursal = saldo.get("sucursal")
     venta = ventas.registrar_venta(
         empresa=cobra,
         fecha=timezone.localdate(),
         tipo_comprobante=pedido.comprobante_tipo,
         lineas=entradas,
-        cobros_entrada=[
-            ventas.CobroEntrada(
-                medio_pago=pago, monto=pedido.total, referencia=pedido.culqi_cargo_id
-            )
-        ],
+        cobros_entrada=cobros_entrada,
+        cobros_previos=previos,
+        sucursal=sucursal,
         vendedor_nombre=VENDEDOR,
         cliente=_cliente_real(pedido, cuenta),
         lista=_lista_de(pedido.organizacion_id),
@@ -382,6 +474,37 @@ def _registrar_venta(pedido: PedidoTienda, medio: str):
                 monto=deuda.monto,
             )
     return venta
+
+
+def _registrar_adelanto(pedido: PedidoTienda, medio: str) -> None:
+    """El adelanto entra a la cuenta de Culqi de la empresa que cobra (sin comprobante).
+
+    Al entregar, la venta por el total descuenta este dinero como un cobro previo.
+    """
+    config = _config_activa_para_venta(pedido.organizacion_id)
+    cobra = (
+        Empresa.objects.sin_ambito()
+        .filter(
+            pk=config.empresa_cobra_id,
+            organizacion_id=pedido.organizacion_id,
+            estado=EstadoRegistro.ACTIVO,
+        )
+        .first()
+    )
+    if cobra is None:
+        raise VentaInvalida("La empresa que cobra con Culqi no está activa.")
+    pago = _preparar_cuentas(pedido.organizacion_id, [cobra], cobra, medio)
+    cuenta = ventas.resolver_cuenta(cobra, pago, None, "PEN")
+    caja.registrar_adelanto_de_tienda(
+        empresa=cobra,
+        cuenta=cuenta,
+        monto=pedido.adelanto_monto,
+        fecha=timezone.localdate(),
+        referencia=pedido.culqi_cargo_id,
+        glosa=f"Adelanto del pedido {pedido.numero} (tienda virtual)",
+        pedido_id=pedido.pk,
+        medio_pago=pago,
+    )
 
 
 def _config_activa_para_venta(organizacion_id: int) -> ConfiguracionPago:
@@ -423,10 +546,12 @@ def confirmar_pago(
         organizacion_id = pedido.organizacion_id
         if pedido.estado in YA_COBRADOS:
             return pedido
-        if cargo.monto_centimos != _centimos(pedido.total):
+        if cargo.monto_centimos != _centimos(pedido.monto_a_cobrar):
             _alerta(pedido, "El monto cobrado no coincide con el total del pedido.")
             raise MontoNoCoincide()
         ahora = timezone.now()
+        cupones.consumir(pedido)  # ya pagó: el cupón quedó usado
+        carrito_abandonado.marcar_recuperado(pedido)  # ¿venía de un recordatorio?
         if pedido.estado in (Estado.EXPIRADO, Estado.CANCELADO):
             # Pagó cuando el pedido ya no estaba vigente: el stock pudo haberse soltado.
             pedido.estado = Estado.PAGADO_FUERA_DE_PLAZO
@@ -448,7 +573,11 @@ def confirmar_pago(
             )
             # Savepoint: si algo falla, el cobro no se pierde (ver el except).
             with transaction.atomic(), contexto_tenant(pedido.organizacion_id, empresas, None):
-                venta = _registrar_venta(pedido, cargo.medio)
+                if pedido.pago_modo == PedidoTienda.PagoModo.ADELANTO:
+                    _registrar_adelanto(pedido, cargo.medio)  # solo el dinero: aún no hay venta
+                    venta = None
+                else:
+                    venta = _registrar_venta(pedido, cargo.medio)
         except Exception as error:  # noqa: BLE001 - nada puede perder un cobro ya aprobado
             logger.exception("tienda_confirmar_pago_fallo", extra={"pedido": pedido.numero})
             pedido.estado = Estado.PAGADO_SIN_COMPROBANTE
@@ -458,14 +587,19 @@ def confirmar_pago(
             pedido.save()
             _alerta(pedido, pedido.motivo_atencion)
             return pedido
+        con_adelanto = pedido.pago_modo == PedidoTienda.PagoModo.ADELANTO
         pedido.venta = venta
-        pedido.estado = Estado.PAGADO
+        pedido.estado = Estado.ADELANTO_PAGADO if con_adelanto else Estado.PAGADO
         pedido.motivo_atencion = ""
+        if con_adelanto:
+            pedido.adelanto_vence_en = adelantos.vencimiento(pedido, ahora)
         pedido.save()
-        # El stock ya salió con la venta: la reserva cumplió su papel.
-        ReservaStock.objects.sin_ambito().filter(pedido=pedido, liberada_en__isnull=True).update(
-            liberada_en=ahora
-        )
+        if not con_adelanto:
+            # El stock ya salió con la venta: la reserva cumplió su papel. Con adelanto sigue
+            # apartado hasta que el cliente recoja (o venza el plazo).
+            ReservaStock.objects.sin_ambito().filter(
+                pedido=pedido, liberada_en__isnull=True
+            ).update(liberada_en=ahora)
         IntentoPago.objects.sin_ambito().filter(
             pedido=pedido, estado__in=[IntentoPago.Estado.EN_CURSO, IntentoPago.Estado.INCIERTO]
         ).update(estado=IntentoPago.Estado.APROBADO, culqi_cargo_id=cargo.id, actualizado_en=ahora)
@@ -474,11 +608,24 @@ def confirmar_pago(
             recurso_tipo="pedido_tienda",
             recurso_id=pedido.pk,
             organizacion_id=pedido.organizacion_id,
-            resumen=f"Pedido {pedido.numero} pagado con Culqi",
-            detalle={"total": str(pedido.total), "medio": cargo.medio},
+            resumen=(
+                f"Pedido {pedido.numero}: adelanto pagado con Culqi"
+                if con_adelanto
+                else f"Pedido {pedido.numero} pagado con Culqi"
+            ),
+            detalle={
+                "total": str(pedido.total),
+                "cobrado": str(pedido.monto_a_cobrar),
+                "medio": cargo.medio,
+            },
         )
         transaction.on_commit(catalogo.invalidar)
         transaction.on_commit(lambda: _encolar_correo(pedido.pk))
+        transaction.on_commit(
+            lambda: avisos.encolar(
+                pedido.pk, "PEDIDO_ADELANTO" if con_adelanto else "PEDIDO_PAGADO"
+            )
+        )
     logger.info("tienda_pedido_pagado", extra={"organizacion_id": organizacion_id})
     return pedido
 
@@ -504,7 +651,7 @@ def reintentar_comprobantes() -> int:
     )
     reparados = 0
     for pk in ids:
-        reparados += reintentar_pedido(pk).estado == Estado.PAGADO
+        reparados += reintentar_pedido(pk).estado in (Estado.PAGADO, Estado.ADELANTO_PAGADO)
     return reparados
 
 
@@ -514,7 +661,7 @@ def reintentar_pedido(pedido_id: int) -> PedidoTienda:
     cargo = culqi.Cargo(
         id=pedido.culqi_cargo_id,
         aprobado=True,
-        monto_centimos=_centimos(pedido.total),
+        monto_centimos=_centimos(pedido.monto_a_cobrar),
         pedido=pedido.numero,
         medio=pedido.culqi_medio or "tarjeta",
         mensaje="",
@@ -567,6 +714,22 @@ def enviar_confirmacion(pedido_id: int) -> bool:
         entrega = f"Recojo en tienda: {pedido.punto_nombre}"
     else:
         entrega = f"Envío a: {pedido.direccion_entrega}, {pedido.ubicacion_entrega}"
+    if pedido.pago_modo == PedidoTienda.PagoModo.ADELANTO:
+        vence = timezone.localtime(pedido.adelanto_vence_en).strftime("%d/%m/%Y %H:%M")
+        cuerpo = (
+            f"Hola {pedido.cuenta.nombres},\n\n"
+            f"Recibimos tu adelanto de S/ {pedido.adelanto_monto}. Tu pedido {pedido.numero} "
+            f"está guardado para ti.\n\n{detalle}\n\nTotal del pedido: S/ {pedido.total}\n"
+            f"Adelanto pagado: S/ {pedido.adelanto_monto}\n"
+            f"Saldo a pagar al recoger: S/ {pedido.saldo}\n{entrega}\n"
+            f"Puedes recogerlo hasta el {vence}.\n{adelantos.texto_condiciones(pedido)}\n\n"
+            f"Puedes ver tu pedido en {settings.TIENDA_URL.rstrip('/')}/cuenta/pedidos"
+        )
+        send_mail(
+            f"Adelanto recibido: pedido {pedido.numero}", cuerpo, None, [pedido.cuenta.correo]
+        )
+        avisos.anotar_correo(pedido, "PEDIDO_ADELANTO", enviado=True)
+        return True
     cuerpo = (
         f"Hola {pedido.cuenta.nombres},\n\n"
         f"Recibimos tu pago. Tu pedido {pedido.numero} está confirmado.\n\n"
@@ -575,4 +738,5 @@ def enviar_confirmacion(pedido_id: int) -> bool:
         "Te enviaremos tu comprobante electrónico a este correo."
     )
     send_mail(f"Pedido {pedido.numero} confirmado", cuerpo, None, [pedido.cuenta.correo])
+    avisos.anotar_correo(pedido, "PEDIDO_PAGADO", enviado=True)
     return True

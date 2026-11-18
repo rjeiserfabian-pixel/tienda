@@ -16,6 +16,10 @@ def _ruta_logo(instancia, nombre: str) -> str:
     return f"tienda/{instancia.organizacion_id}/{nombre}"
 
 
+def _ruta_voucher(instancia, nombre: str) -> str:
+    return f"tienda/vouchers/{instancia.organizacion_id}/{nombre}"
+
+
 class ConfiguracionTienda(OrganizacionScopedModel):
     """Cómo se muestra la tienda pública: qué precios y de qué almacenes sale el stock.
 
@@ -90,6 +94,24 @@ class ConfiguracionTienda(OrganizacionScopedModel):
     garantia_texto = models.CharField(max_length=250, blank=True)
     entrega_texto = models.CharField(max_length=250, blank=True)
 
+    # --- Posicionamiento y medición (opcional; la medición solo corre si el cliente acepta) ---
+    seo_titulo_inicio = models.CharField(max_length=70, blank=True)
+    google_verificacion = models.CharField(
+        max_length=100,
+        blank=True,
+        validators=[RegexValidator(r"^[A-Za-z0-9_-]{10,100}$", "Pegue solo el código de Google.")],
+    )
+    ga4_id = models.CharField(
+        max_length=20,
+        blank=True,
+        validators=[RegexValidator(r"^G-[A-Z0-9]{4,15}$", "Use un código como G-ABC123XYZ.")],
+    )
+    meta_pixel_id = models.CharField(
+        max_length=20,
+        blank=True,
+        validators=[RegexValidator(r"^\d{8,20}$", "Use solo los números del píxel.")],
+    )
+
     # --- Legales ---
     libro_reclamaciones_url = models.CharField(max_length=500, blank=True, validators=[validar_url])
     terminos_url = models.CharField(max_length=500, blank=True, validators=[validar_url])
@@ -128,6 +150,8 @@ class CuentaCliente(OrganizacionScopedModel):
     correo_verificado_en = models.DateTimeField(null=True, blank=True)
     acepta_terminos_en = models.DateTimeField(null=True, blank=True)
     acepta_ofertas = models.BooleanField(default=False)
+    # Permiso del cliente para avisarle de sus pedidos por WhatsApp (por defecto, no).
+    acepta_whatsapp = models.BooleanField(default=False)
     activa = models.BooleanField(default=True)
     ultimo_ingreso = models.DateTimeField(null=True, blank=True)
     cliente = models.ForeignKey(
@@ -349,6 +373,10 @@ class CarritoCuenta(OrganizacionScopedModel):
 
     cuenta = models.OneToOneField(CuentaCliente, on_delete=models.CASCADE, related_name="carrito")
     lineas = models.JSONField(default=list)
+    # Recordatorios de carrito abandonado ya enviados para ESTE contenido del carrito: si el
+    # cliente lo cambia, la cuenta empieza de cero.
+    recordatorios_enviados = models.PositiveSmallIntegerField(default=0)
+    ultimo_recordatorio_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "carrito de cuenta"
@@ -356,6 +384,58 @@ class CarritoCuenta(OrganizacionScopedModel):
 
     def __str__(self) -> str:
         return f"Carrito de la cuenta {self.cuenta_id}"
+
+
+class ConfiguracionCarritoAbandonado(OrganizacionScopedModel):
+    """Recordatorios por correo a quien dejó productos en su carrito sin comprar.
+
+    Solo a clientes con cuenta confirmada que aceptaron recibir ofertas (y pueden darse de baja con
+    un enlace). Dos recordatorios como máximo por carrito: el primero a las ``horas_primero`` de
+    dejarlo y el segundo ``horas_segundo`` después del primero, con un cupón de incentivo si se
+    eligió.
+    """
+
+    activo = models.BooleanField(default=False)
+    horas_primero = models.PositiveSmallIntegerField(default=2)
+    horas_segundo = models.PositiveSmallIntegerField(default=24)
+    cupon = models.ForeignKey(
+        "tienda.Cupon", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "configuración de carrito abandonado"
+        verbose_name_plural = "configuraciones de carrito abandonado"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organizacion"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_configcarrito_organizacion",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"Carrito abandonado de la organización {self.organizacion_id}"
+
+
+class RecordatorioCarrito(OrganizacionScopedModel):
+    """Un recordatorio enviado (queda para medir cuántos carritos se recuperan)."""
+
+    cuenta = models.ForeignKey(CuentaCliente, on_delete=models.CASCADE, related_name="+")
+    numero = models.PositiveSmallIntegerField()  # 1 = primero, 2 = segundo
+    total_carrito = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    cupon_codigo = models.CharField(max_length=30, blank=True)
+    recuperado_en = models.DateTimeField(null=True, blank=True)
+    pedido = models.ForeignKey(
+        "tienda.PedidoTienda", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "recordatorio de carrito"
+        verbose_name_plural = "recordatorios de carritos"
+        ordering = ["-id"]
+
+    def __str__(self) -> str:
+        return f"{self.cuenta_id}: recordatorio {self.numero}"
 
 
 class ConfiguracionPago(OrganizacionScopedModel):
@@ -379,6 +459,46 @@ class ConfiguracionPago(OrganizacionScopedModel):
     empresa_cobra = models.ForeignKey(
         "organizacion.Empresa", null=True, blank=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    # --- Pago con adelanto: el cliente paga una parte ahora y el resto al recoger en tienda ---
+    class SiNoRecoge(models.TextChoices):
+        REEMBOLSO = "REEMBOLSO", "Se devuelve el adelanto, menos la comisión de la pasarela"
+        PENALIDAD = "PENALIDAD", "Se retiene el adelanto como penalidad (todo o una parte)"
+
+    # --- Transferencia o depósito: el cliente paga a una cuenta y sube su comprobante ---
+    transferencia_activa = models.BooleanField(default=False)
+    transferencia_horas = models.PositiveSmallIntegerField(
+        "horas para pagar por transferencia", default=24
+    )
+    transferencia_instrucciones = models.CharField(max_length=600, blank=True)
+    # Las cuentas (de cualquier empresa) a las que el cliente puede transferir.
+    cuentas_transferencia = models.ManyToManyField(
+        "mantenimiento.CuentaFinanciera", blank=True, related_name="+"
+    )
+
+    adelanto_activo = models.BooleanField(default=False)
+    adelanto_pct = models.DecimalField(
+        "porcentaje que se paga por adelantado", max_digits=5, decimal_places=2, default=30
+    )
+    adelanto_minimo = models.DecimalField(
+        "monto mínimo del pedido para ofrecerlo (soles, con IGV)",
+        max_digits=10,
+        decimal_places=2,
+        default=200,
+    )
+    adelanto_dias = models.PositiveSmallIntegerField("días para recoger", default=5)
+    adelanto_si_no_recoge = models.CharField(
+        max_length=10, choices=SiNoRecoge.choices, default=SiNoRecoge.REEMBOLSO
+    )
+    adelanto_penalidad_pct = models.DecimalField(
+        "qué parte del adelanto se retiene si no recoge (%)",
+        max_digits=5,
+        decimal_places=2,
+        default=100,
+    )
+    # Lo que se queda la pasarela de cada cobro: se descuenta al devolver un adelanto.
+    comision_pasarela_pct = models.DecimalField(max_digits=5, decimal_places=2, default=4)
+    comision_pasarela_fija = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
     class Meta:
         verbose_name = "configuración de pagos de la tienda"
@@ -413,6 +533,9 @@ class PedidoTienda(OrganizacionScopedModel):
         CANCELADO = "CANCELADO", "Cancelado"
         EXPIRADO = "EXPIRADO", "Vencido sin pago"
         # El dinero YA se cobró pero algo impidió terminar: requieren atención del negocio.
+        ADELANTO_PAGADO = "ADELANTO_PAGADO", "Adelanto pagado: falta el saldo al recoger"
+        NO_RECOGIDO = "NO_RECOGIDO", "No lo recogió a tiempo"
+        POR_VERIFICAR = "POR_VERIFICAR", "Transferencia: falta verificar el pago"
         PAGADO_SIN_COMPROBANTE = "PAGADO_SIN_COMPROBANTE", "Pagado: falta el comprobante"
         PAGADO_FUERA_DE_PLAZO = "PAGADO_FUERA_DE_PLAZO", "Pagado fuera de plazo"
         # Reembolsos: lo interno ya se deshizo; falta o ya se devolvió el dinero al cliente.
@@ -463,6 +586,50 @@ class PedidoTienda(OrganizacionScopedModel):
     igv_exonerado = models.BooleanField(default=False)
     motivo_igv = models.CharField(max_length=200, blank=True)
 
+    # Pago con adelanto (copia de lo acordado al crear el pedido: no cambia si luego se edita la
+    # configuración). ``adelanto_monto`` es lo que se cobra ahora; el resto se paga al recoger.
+    class PagoModo(models.TextChoices):
+        COMPLETO = "COMPLETO", "Pago completo"
+        ADELANTO = "ADELANTO", "Adelanto y saldo al recoger"
+
+    pago_modo = models.CharField(max_length=10, choices=PagoModo.choices, default=PagoModo.COMPLETO)
+
+    # Cómo paga: con tarjeta o Yape por Culqi, o por transferencia o depósito (con comprobante que
+    # el personal verifica).
+    class PagoMetodo(models.TextChoices):
+        CULQI = "CULQI", "Tarjeta o Yape"
+        TRANSFERENCIA = "TRANSFERENCIA", "Transferencia o depósito"
+
+    pago_metodo = models.CharField(
+        max_length=14, choices=PagoMetodo.choices, default=PagoMetodo.CULQI
+    )
+    cuenta_transferencia = models.ForeignKey(
+        "mantenimiento.CuentaFinanciera",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="+",
+    )
+    voucher = models.FileField(upload_to=_ruta_voucher, max_length=255, blank=True)
+    voucher_operacion = models.CharField(max_length=40, blank=True)
+    voucher_subido_en = models.DateTimeField(null=True, blank=True)
+    # Por qué se rechazó el último comprobante (lo ve el cliente para corregirlo).
+    transferencia_rechazo = models.CharField(max_length=250, blank=True)
+    adelanto_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    adelanto_monto = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    adelanto_dias = models.PositiveSmallIntegerField(default=0)
+    adelanto_vence_en = models.DateTimeField(null=True, blank=True, db_index=True)
+    adelanto_politica = models.CharField(max_length=10, blank=True)  # REEMBOLSO | PENALIDAD
+    adelanto_penalidad_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    adelanto_comision_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    adelanto_comision_fija = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    # Cómo terminó el adelanto de un pedido que no se recogió (lo devuelto y lo retenido).
+    adelanto_devuelto = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    adelanto_retenido = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    # Cupón usado (copia de lo acordado): el código y cuánto se descontó en total (con IGV).
+    cupon_codigo = models.CharField(max_length=30, blank=True)
+    descuento_cupon = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+
     # Pago (Culqi) y venta
     culqi_cargo_id = models.CharField(max_length=40, blank=True)
     culqi_medio = models.CharField(max_length=10, blank=True)  # tarjeta | yape
@@ -496,6 +663,18 @@ class PedidoTienda(OrganizacionScopedModel):
         ]
         indexes = [models.Index(fields=["estado", "expira_en"], name="ix_pedidotienda_vence")]
 
+    @property
+    def monto_a_cobrar(self):
+        """Lo que se le cobra al cliente en la tienda: el total, o solo el adelanto."""
+        return self.adelanto_monto if self.pago_modo == self.PagoModo.ADELANTO else self.total
+
+    @property
+    def saldo(self):
+        """Lo que falta pagar al recoger (cero si pagó todo)."""
+        if self.pago_modo != self.PagoModo.ADELANTO:
+            return 0
+        return self.total - self.adelanto_monto
+
     def __str__(self) -> str:
         return self.numero
 
@@ -520,6 +699,8 @@ class LineaPedido(OrganizacionScopedModel):
     igv = models.DecimalField(max_digits=14, decimal_places=2)
     total = models.DecimalField(max_digits=14, decimal_places=2)
     es_envio = models.BooleanField(default=False)
+    # Lo que el cupón descontó en esta línea (con IGV); el precio de arriba ya lo trae aplicado.
+    descuento = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     # Productos que llevan número de serie: la que salió en el comprobante (se asigna sola al
     # pagar, la más antigua) y la que realmente se entregó si el almacén la cambió al preparar.
     series_asignadas = models.JSONField(default=list, blank=True)
@@ -647,6 +828,135 @@ class HistorialPedido(models.Model):
 
     def __str__(self) -> str:
         return f"{self.pedido_id}: {self.tipo} {self.estado}"
+
+
+class Cupon(OrganizacionScopedModel):
+    """Código de descuento de la tienda.
+
+    Reglas de la casa: un cupón por pedido; NO se combina con productos en oferta (salvo que el
+    cupón lo permita expresamente); el descuento se reparte entre los productos a los que aplica y
+    nunca baja un producto de su precio mínimo. El descuento de un cupón de monto o porcentaje se
+    calcula sobre lo que paga el cliente (con IGV).
+    """
+
+    class Tipo(models.TextChoices):
+        PORCENTAJE = "PORCENTAJE", "Porcentaje de descuento"
+        MONTO = "MONTO", "Monto fijo de descuento"
+        ENVIO_GRATIS = "ENVIO_GRATIS", "Envío gratis"
+
+    class Alcance(models.TextChoices):
+        TODO = "TODO", "Toda la tienda"
+        CATEGORIAS = "CATEGORIAS", "Solo ciertas categorías"
+        MARCAS = "MARCAS", "Solo ciertas marcas"
+        PRODUCTOS = "PRODUCTOS", "Solo ciertos productos"
+
+    codigo = models.CharField(max_length=30)  # siempre en mayúsculas
+    nombre = models.CharField("para qué es (solo lo ve el negocio)", max_length=100, blank=True)
+    tipo = models.CharField(max_length=14, choices=Tipo.choices)
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tope_descuento = models.DecimalField(
+        "máximo a descontar (soles)", max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    compra_minima = models.DecimalField(
+        "compra mínima en productos (soles, con IGV)", max_digits=10, decimal_places=2, default=0
+    )
+    inicia_en = models.DateTimeField(null=True, blank=True)
+    termina_en = models.DateTimeField(null=True, blank=True)
+    usos_maximos = models.PositiveIntegerField(null=True, blank=True)  # vacío = sin límite
+    usos_por_cliente = models.PositiveSmallIntegerField(default=1)
+    alcance = models.CharField(max_length=10, choices=Alcance.choices, default=Alcance.TODO)
+    categorias = models.ManyToManyField("mantenimiento.Categoria", blank=True, related_name="+")
+    marcas = models.ManyToManyField("mantenimiento.Marca", blank=True, related_name="+")
+    productos = models.ManyToManyField("mantenimiento.Producto", blank=True, related_name="+")
+    solo_primera_compra = models.BooleanField(default=False)
+    incluye_ofertas = models.BooleanField("también en productos en oferta", default=False)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "cupón de la tienda"
+        verbose_name_plural = "cupones de la tienda"
+        ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("codigo"),
+                "organizacion",
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_cupon_codigo_vigente",
+            ),
+            models.CheckConstraint(condition=Q(valor__gte=0), name="ck_cupon_valor_no_negativo"),
+        ]
+
+    def __str__(self) -> str:
+        return self.codigo
+
+
+class UsoCupon(OrganizacionScopedModel):
+    """Cada vez que un pedido usa un cupón. Se aparta al crear el pedido, se consume al pagar y se
+    libera si el pedido vence o se cancela."""
+
+    class Estado(models.TextChoices):
+        RESERVADO = "RESERVADO", "Apartado (esperando el pago)"
+        CONSUMIDO = "CONSUMIDO", "Usado"
+        LIBERADO = "LIBERADO", "Liberado"
+
+    cupon = models.ForeignKey(Cupon, on_delete=models.PROTECT, related_name="usos")
+    pedido = models.OneToOneField(
+        "tienda.PedidoTienda", on_delete=models.CASCADE, related_name="uso_cupon"
+    )
+    cuenta = models.ForeignKey(CuentaCliente, on_delete=models.PROTECT, related_name="+")
+    monto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.RESERVADO)
+
+    class Meta:
+        verbose_name = "uso de cupón"
+        verbose_name_plural = "usos de cupones"
+        ordering = ["-id"]
+
+    def __str__(self) -> str:
+        return f"{self.cupon_id} en el pedido {self.pedido_id} ({self.estado})"
+
+
+class AvisoPedido(OrganizacionScopedModel):
+    """Un aviso automático al cliente por un pedido (uno por pedido, evento y canal).
+
+    Es la bandeja de salida: se anota aquí, una tarea lo envía y aquí queda cómo salió. Sirve para
+    que el negocio vea si el cliente fue avisado, y para no repetir un aviso.
+    """
+
+    class Canal(models.TextChoices):
+        CORREO = "CORREO", "Correo"
+        WHATSAPP = "WHATSAPP", "WhatsApp"
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Pendiente"
+        ENVIADO = "ENVIADO", "Enviado"
+        FALLIDO = "FALLIDO", "No se pudo enviar"
+        OMITIDO = "OMITIDO", "No se envió"
+
+    pedido = models.ForeignKey(PedidoTienda, on_delete=models.CASCADE, related_name="avisos")
+    evento = models.CharField(max_length=24)  # PEDIDO_PAGADO, PEDIDO_ENVIADO…
+    canal = models.CharField(max_length=10, choices=Canal.choices)
+    destino = models.CharField(max_length=150, blank=True)
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PENDIENTE)
+    intentos = models.PositiveSmallIntegerField(default=0)
+    detalle = models.CharField(max_length=255, blank=True)
+    externo_id = models.CharField(max_length=80, blank=True)
+    enviado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "aviso de pedido"
+        verbose_name_plural = "avisos de pedidos"
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pedido", "evento", "canal"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_avisopedido_pedido_evento_canal",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.pedido_id}: {self.evento} por {self.canal} ({self.estado})"
 
 
 class ConfiguracionArmador(OrganizacionScopedModel):
@@ -791,6 +1101,7 @@ class ReembolsoPedido(OrganizacionScopedModel):
         DUPLICADO = "DUPLICADO", "Cobro duplicado"
         FRAUDE = "FRAUDE", "Sospecha de fraude"
         SIN_STOCK = "SIN_STOCK", "No se puede entregar (sin stock)"
+        NO_RECOGIDO = "NO_RECOGIDO", "No recogió su pedido a tiempo"
         OTRO = "OTRO", "Otro motivo"
 
     pedido = models.ForeignKey(PedidoTienda, on_delete=models.PROTECT, related_name="reembolsos")
@@ -818,3 +1129,217 @@ class ReembolsoPedido(OrganizacionScopedModel):
 
     def __str__(self) -> str:
         return f"{self.pedido_id}: {self.tipo} {self.monto}"
+
+
+class ConfiguracionResenas(OrganizacionScopedModel):
+    """Cómo se piden las reseñas: un correo unos días después de entregar el pedido.
+
+    Las reseñas se publican solas; el dueño puede ocultarlas. Este correo es opcional, va solo a
+    clientes que aceptaron recibir comunicaciones y lleva su enlace de baja.
+    """
+
+    pedir_activo = models.BooleanField(default=False)
+    pedir_dias = models.PositiveSmallIntegerField("días después de entregar", default=3)
+
+    class Meta:
+        verbose_name = "configuración de reseñas"
+        verbose_name_plural = "configuraciones de reseñas"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organizacion"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_configresenas_organizacion",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"Reseñas de la organización {self.organizacion_id}"
+
+
+class ResenaProducto(OrganizacionScopedModel):
+    """La opinión de un cliente que ya recibió el producto (una por cliente y producto)."""
+
+    class Estado(models.TextChoices):
+        PUBLICADA = "PUBLICADA", "Publicada"
+        OCULTA = "OCULTA", "Oculta"
+
+    producto = models.ForeignKey(
+        "mantenimiento.Producto", on_delete=models.PROTECT, related_name="+"
+    )
+    cuenta = models.ForeignKey(CuentaCliente, on_delete=models.PROTECT, related_name="resenas")
+    # El pedido entregado que da derecho a opinar.
+    pedido = models.ForeignKey(PedidoTienda, on_delete=models.PROTECT, related_name="resenas")
+    estrellas = models.PositiveSmallIntegerField()
+    titulo = models.CharField(max_length=80, blank=True)
+    comentario = models.CharField(max_length=1000, blank=True)
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PUBLICADA)
+    oculta_motivo = models.CharField(max_length=200, blank=True)
+    respuesta = models.CharField(max_length=600, blank=True)
+    respuesta_en = models.DateTimeField(null=True, blank=True)
+    respuesta_por = models.CharField(max_length=150, blank=True)
+    editada_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "reseña de producto"
+        verbose_name_plural = "reseñas de productos"
+        ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cuenta", "producto"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_resena_cuenta_producto",
+            ),
+            models.CheckConstraint(
+                condition=Q(estrellas__gte=1, estrellas__lte=5), name="ck_resena_estrellas"
+            ),
+        ]
+        indexes = [models.Index(fields=["producto", "estado"], name="ix_resena_producto_estado")]
+
+    def __str__(self) -> str:
+        return f"{self.producto_id}: {self.estrellas}★ de {self.cuenta_id}"
+
+
+class Favorito(OrganizacionScopedModel):
+    """Un producto que el cliente guardó para verlo después (el corazón de la tienda)."""
+
+    cuenta = models.ForeignKey(CuentaCliente, on_delete=models.CASCADE, related_name="favoritos")
+    producto = models.ForeignKey(
+        "mantenimiento.Producto", on_delete=models.CASCADE, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "favorito"
+        verbose_name_plural = "favoritos"
+        ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cuenta", "producto"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_favorito_cuenta_producto",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.cuenta_id}: {self.producto_id}"
+
+
+class AvisoDisponibilidad(OrganizacionScopedModel):
+    """«Avísame cuando llegue»: el cliente pidió que le escribamos cuando haya stock.
+
+    Se avisa una sola vez por pedido de aviso (queda ``avisado_en``); si no llega nunca, vence solo.
+    """
+
+    cuenta = models.ForeignKey(CuentaCliente, on_delete=models.CASCADE, related_name="avisos_stock")
+    producto = models.ForeignKey(
+        "mantenimiento.Producto", on_delete=models.CASCADE, related_name="+"
+    )
+    avisado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "aviso de disponibilidad"
+        verbose_name_plural = "avisos de disponibilidad"
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cuenta", "producto"],
+                condition=Q(eliminado_en__isnull=True, avisado_en__isnull=True),
+                name="uq_avisodisp_cuenta_producto_pendiente",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["producto", "avisado_en"], name="ix_avisodisp_prod_avisado")
+        ]
+
+    def __str__(self) -> str:
+        estado = "avisado" if self.avisado_en else "pendiente"
+        return f"{self.cuenta_id}: {self.producto_id} ({estado})"
+
+
+class Reclamo(OrganizacionScopedModel):
+    """Hoja de reclamación del Libro de Reclamaciones virtual (obligatorio en Perú).
+
+    Se registra con todos los datos que pide la norma (consumidor, bien contratado, detalle y pedido
+    del consumidor) y un número correlativo por año. El negocio debe responder en 15 días hábiles
+    (``vence_en``); esa respuesta se guarda y se manda al correo del consumidor.
+    """
+
+    class Tipo(models.TextChoices):
+        RECLAMO = "RECLAMO", "Reclamo"
+        QUEJA = "QUEJA", "Queja"
+
+    class Estado(models.TextChoices):
+        PENDIENTE = "PENDIENTE", "Por responder"
+        RESPONDIDO = "RESPONDIDO", "Respondido"
+
+    numero = models.CharField(max_length=12)  # «0001-2026»
+    empresa = models.ForeignKey("organizacion.Empresa", on_delete=models.PROTECT, related_name="+")
+    cuenta = models.ForeignKey(
+        CuentaCliente, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    tipo = models.CharField(max_length=8, choices=Tipo.choices)
+    # --- Consumidor ---
+    nombre = models.CharField(max_length=150)
+    documento_tipo = models.CharField(max_length=10)
+    documento_numero = models.CharField(max_length=20)
+    domicilio = models.CharField(max_length=250)
+    telefono = models.CharField(max_length=30, blank=True)
+    correo = models.EmailField(max_length=150)
+    menor_de_edad = models.BooleanField(default=False)
+    apoderado = models.CharField(max_length=150, blank=True)
+    # --- Bien contratado ---
+    bien_tipo = models.CharField(max_length=10)  # PRODUCTO | SERVICIO
+    monto = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    bien_descripcion = models.CharField(max_length=300)
+    pedido_numero = models.CharField(max_length=20, blank=True)
+    # --- Detalle ---
+    detalle = models.CharField(max_length=2000)
+    pedido_consumidor = models.CharField(max_length=1000)
+    # --- Seguimiento ---
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PENDIENTE)
+    vence_en = models.DateTimeField()
+    respuesta = models.CharField(max_length=2000, blank=True)
+    respondido_en = models.DateTimeField(null=True, blank=True)
+    respondido_por = models.CharField(max_length=150, blank=True)
+    respuesta_enviada = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "reclamo"
+        verbose_name_plural = "reclamos"
+        ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organizacion", "numero"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_reclamo_numero",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["organizacion", "estado", "vence_en"], name="ix_reclamo_estado")
+        ]
+
+    def __str__(self) -> str:
+        return f"Reclamo {self.numero} ({self.estado})"
+
+
+class PaginaLegal(OrganizacionScopedModel):
+    """Una página de texto de la tienda (términos, privacidad, cambios…) que edita el negocio."""
+
+    slug = models.SlugField(max_length=40)
+    titulo = models.CharField(max_length=120)
+    contenido = models.TextField(max_length=30000, blank=True)
+    publicada = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "página legal"
+        verbose_name_plural = "páginas legales"
+        ordering = ["slug"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organizacion", "slug"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_paginalegal_slug",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.slug} ({'publicada' if self.publicada else 'borrador'})"

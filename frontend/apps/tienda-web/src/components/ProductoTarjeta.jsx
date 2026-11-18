@@ -3,6 +3,7 @@ import { soles, textoDisponibilidad } from '@/lib/format'
 import '@/app/ofertas.css'
 import BotonAgregar from './BotonAgregar'
 import BotonComparar from './BotonComparar'
+import BotonFavorito from './BotonFavorito'
 import CuentaRegresiva from './CuentaRegresiva'
 
 /**
@@ -70,6 +71,7 @@ export default function ProductoTarjeta({ producto: p, prioridad = false }) {
         </div>
       </Link>
       <BotonComparar producto={{ id: p.id, nombre: p.nombre, foto: p.foto, categoria: p.categoria }} />
+      <BotonFavorito producto={{ id: p.id, nombre: p.nombre }} />
       {precio && !agotado && (
         <div className="tar-accion">
           <BotonAgregar producto={p} />

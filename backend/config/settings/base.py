@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "apps.caja",
     "apps.gastos",
     "apps.ventas",
+    "apps.garantias",
+    "apps.comisiones",
     "apps.servicio_tecnico",
     "apps.facturacion",
     "apps.rrhh",
@@ -331,6 +333,7 @@ REST_FRAMEWORK = {
         "usuario": env("THROTTLE_USUARIO", default="120/min"),
         "mostrador": env("THROTTLE_MOSTRADOR", default="600/min"),
         "anon": env("THROTTLE_ANON", default="30/min"),
+        "garantia_consulta": env("THROTTLE_GARANTIA_CONSULTA", default="10/min"),
         "tienda": env("THROTTLE_TIENDA", default="240/min"),
         "tienda_fotos": env("THROTTLE_TIENDA_FOTOS", default="1200/min"),
         "tienda_cuenta": env("THROTTLE_TIENDA_CUENTA", default="60/min"),
@@ -429,7 +432,17 @@ CELERY_BEAT_SCHEDULE = {
     "revisar-ofertas-tienda": {"task": "tienda.revisar_ofertas", "schedule": 60},
     "expirar-pedidos-tienda": {"task": "tienda.expirar_pedidos", "schedule": 300},
     "reintentar-comprobantes-tienda": {"task": "tienda.reintentar_comprobantes", "schedule": 300},
+    "vencer-adelantos-tienda": {"task": "tienda.vencer_adelantos", "schedule": 3600},
+    "recordar-carritos-tienda": {"task": "tienda.recordar_carritos", "schedule": 900},
+    "recordar-adelantos-tienda": {"task": "tienda.recordar_adelantos", "schedule": 3600},
+    "pedir-resenas-tienda": {"task": "tienda.pedir_resenas", "schedule": 3600},
+    "avisar-disponibles-tienda": {"task": "tienda.avisar_disponibles", "schedule": 900},
     "reintentar-reembolsos-tienda": {"task": "tienda.reintentar_reembolsos", "schedule": 300},
+    # Todos los días a las 9:00 (hora de Lima): avisa a quienes tienen una garantía por vencer.
+    "avisar-garantias-por-vencer": {
+        "task": "garantias.avisar_por_vencer",
+        "schedule": crontab(hour=9, minute=0),
+    },
 }
 if TIPO_CAMBIO_AUTOMATICO:
     # Lunes a sábado a las 9:30 (hora de Lima): la tasa del día ya está publicada.

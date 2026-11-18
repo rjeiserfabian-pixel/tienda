@@ -1,0 +1,24 @@
+.linea-tiempo {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid var(--borde, #d0d5dd);
+  display: grid;
+  gap: 0.6rem;
+}
+.linea-tiempo time {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.lista-simple {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.lista-simple button {
+  width: 100%;
+  text-align: left;
+}

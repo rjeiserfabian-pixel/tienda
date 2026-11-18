@@ -8,7 +8,7 @@ import { ErrorTienda, errorDeCampo, llamar } from '@/lib/cliente'
 import { useCuenta } from '../Proveedores'
 import CampoClave from './CampoClave'
 
-const VACIO = { nombres: '', apellidos: '', celular: '', correo: '', password: '', acepta_terminos: false, acepta_ofertas: false }
+const VACIO = { nombres: '', apellidos: '', celular: '', correo: '', password: '', acepta_terminos: false, acepta_ofertas: false, acepta_whatsapp: false }
 
 export default function FormRegistro() {
   const volver = rutaSegura(useSearchParams().get('volver'))
@@ -130,6 +130,10 @@ export default function FormRegistro() {
         <label className="campo-check">
           <input type="checkbox" checked={datos.acepta_ofertas} onChange={(e) => setDatos((d) => ({ ...d, acepta_ofertas: e.target.checked }))} />
           <span>Quiero recibir ofertas y novedades por correo (opcional).</span>
+        </label>
+        <label className="campo-check">
+          <input type="checkbox" checked={datos.acepta_whatsapp} onChange={(e) => setDatos((d) => ({ ...d, acepta_whatsapp: e.target.checked }))} />
+          <span>Quiero recibir avisos de mis pedidos por WhatsApp, al celular que escribí arriba (opcional).</span>
         </label>
         <button type="submit" className="boton grande" disabled={enviando || cuenta.autenticado}>
           {enviando ? 'Creando cuenta…' : 'Crear mi cuenta'}

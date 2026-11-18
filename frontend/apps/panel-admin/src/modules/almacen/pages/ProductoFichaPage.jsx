@@ -5,6 +5,7 @@ import { api, erroresDeCampo } from '../../../core/api/client'
 import AvisoLectura from '../../../shared/components/AvisoLectura'
 import BotonVolver from '../../../shared/components/BotonVolver'
 import CabeceraListado from '../../../shared/components/CabeceraListado'
+import HistorialRecurso from '../../../shared/components/HistorialRecurso'
 import Campo from '../../../shared/components/Campo'
 import ConfirmarModal from '../../../shared/components/ConfirmarModal'
 import EstadoConsulta from '../../../shared/components/EstadoConsulta'
@@ -506,6 +507,7 @@ export default function ProductoFichaPage() {
             <>
               <CabeceraListado icono="package" titulo={registro.nombre} descripcion={`Código ${registro.codigo} · ${registro.categoria_nombre}`}>
                 <span className={`estado-pildora ${activo ? 'activo' : 'inactivo'}`}>{activo ? 'Activo' : 'Inactivo'}</span>
+                <HistorialRecurso tipo="producto" id={registro.id} titulo={registro.nombre} />
                 {puedeEditar && (
                   <button type="button" className={`${activo ? 'peligro' : 'primario'} boton-cabecera`} disabled={cambiarEstado.isPending} onClick={() => cambiarEstado.mutate(activo ? 'INACTIVO' : 'ACTIVO')}>
                     <Icono nombre={activo ? 'apagar' : 'reactivar'} tam={19} /> {cambiarEstado.isPending ? 'Guardando…' : activo ? 'Desactivar' : 'Activar'}

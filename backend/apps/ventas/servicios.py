@@ -1022,6 +1022,9 @@ def registrar_venta(
             es_primero=_es_primer_fragmento(fragmentos, fragmento),
             fecha=fecha,
         )
+    from apps.comisiones import calculo as comisiones  # import tardío: evita ciclos
+
+    comisiones.alta_segura(venta, creados)
     registrar(
         "ventas.venta_registrada",
         recurso_tipo="venta",
@@ -1039,7 +1042,52 @@ def registrar_venta(
             "a_credito": sum(creditos, CERO),
         },
     )
+    _auditar_excepciones(venta, comprobantes, empresa, tipo_cambio, cambio, moneda)
     return venta
+
+
+def _auditar_excepciones(
+    venta: Venta,
+    comprobantes: list[_Comprobante],
+    empresa: Empresa,
+    tipo_cambio_pedido: Decimal | None,
+    cambio: Decimal,
+    moneda: str,
+) -> None:
+    """Deja rastro aparte de lo que se salió de lo normal: es lo primero que se revisa.
+
+    * Venta por DEBAJO del precio mínimo (con el permiso de un administrador).
+    * Tipo de cambio puesto a mano en vez del oficial.
+    """
+    bajo = [
+        {
+            "producto": ln.descripcion,
+            "precio": str(ln.precio),
+            "minimo": str(ln.minimo),
+            "lista": str(ln.precio_lista),
+        }
+        for c in comprobantes
+        for ln in c.lineas
+        if ln.bajo_minimo
+    ]
+    if bajo:
+        registrar(
+            "ventas.venta_bajo_minimo",
+            recurso_tipo="venta",
+            recurso_id=venta.pk,
+            empresa_id=empresa.pk,
+            resumen=f"Venta N° {venta.numero:06d} con {len(bajo)} línea(s) bajo el precio mínimo",
+            detalle={"lineas": bajo[:20], "vendedor": venta.vendedor_nombre},
+        )
+    if tipo_cambio_pedido is not None and moneda != Moneda.PEN:
+        registrar(
+            "ventas.tipo_cambio_manual",
+            recurso_tipo="venta",
+            recurso_id=venta.pk,
+            empresa_id=empresa.pk,
+            resumen=f"Venta N° {venta.numero:06d} con tipo de cambio indicado a mano: {cambio}",
+            detalle={"pedido": str(tipo_cambio_pedido), "usado": str(cambio)},
+        )
 
 
 def _debidos_tras_adelantos(
@@ -1187,6 +1235,9 @@ def _emitir(
             series=list(e.series),
             movimiento=ln.movimiento,
         )
+    from apps.garantias.servicios import crear_de_comprobante  # import tardío: evita ciclos
+
+    crear_de_comprobante(comprobante)
     return comprobante
 
 
@@ -1321,6 +1372,10 @@ def anular_comprobante(comprobante: ComprobanteVenta, *, motivo: str) -> Comprob
         )
     # La mercadería ya volvió al almacén de la facturadora: ahora vuelve a quien la entregó.
     ventas_internas.anular_de_comprobante(internas, motivo=motivo)
+    from apps.comisiones import calculo as comisiones
+    from apps.garantias.servicios import anular_de_comprobante as anular_garantias
+
+    anular_garantias(comprobante, motivo)
     for cobro in CobroVenta.objects.filter(comprobante=comprobante):
         caja.anular_por_origen(
             Origen.COBRO_VENTA,
@@ -1331,6 +1386,7 @@ def anular_comprobante(comprobante: ComprobanteVenta, *, motivo: str) -> Comprob
     from .cuentas_por_cobrar import revertir_abonos_de
 
     revertir_abonos_de(comprobante, f"Anulación de {comprobante.numero_completo}: {motivo}")
+    comisiones.recalcular_seguro(comprobante)  # la venta anulada ya no paga comisión
     venta = comprobante.venta
     if not ComprobanteVenta.objects.filter(
         venta=venta, estado=ComprobanteVenta.Estado.EMITIDO

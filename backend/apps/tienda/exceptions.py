@@ -95,3 +95,15 @@ class ReembolsoNoPermitido(ErrorDominio):
     status_code = 409
     codigo = "reembolso_no_permitido"
     mensaje = "Este pedido no se puede reembolsar."
+
+
+class CuponInvalido(ErrorDominio):
+    status_code = 400
+    codigo = "cupon_invalido"
+    mensaje = "No pudimos aplicar ese cupón."
+
+
+class CuponBloqueado(ErrorDominio):
+    status_code = 429
+    codigo = "cupon_bloqueado"
+    mensaje = "Demasiados intentos con cupones. Espera unos minutos e inténtalo de nuevo."

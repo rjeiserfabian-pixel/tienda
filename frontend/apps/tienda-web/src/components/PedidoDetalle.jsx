@@ -4,8 +4,11 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ErrorTienda, llamar } from '@/lib/cliente'
 import { soles } from '@/lib/format'
+import { medir } from '@/lib/medicion'
 import { abrirCulqi, claseEstado, estaPagado, fechaCorta, textoEstado } from '@/lib/pago'
+import ListaGarantias from './garantia/ListaGarantias'
 import Icono from './Icono'
+import TransferenciaPedido from './TransferenciaPedido'
 import { useCuenta } from './Proveedores'
 
 const PASOS = [
@@ -97,7 +100,7 @@ export default function PedidoDetalle({ numero, gracias = false }) {
   // Justo después de pagar: se vuelve a preguntar un rato mientras el pedido se termina de confirmar.
   useEffect(() => {
     if (!gracias || !pedido) return undefined
-    const enEspera = pedido.estado === 'PENDIENTE_PAGO' || pedido.estado === 'PAGADO_SIN_COMPROBANTE'
+    const enEspera = (pedido.estado === 'PENDIENTE_PAGO' && pedido.pago_metodo !== 'TRANSFERENCIA') || pedido.estado === 'PAGADO_SIN_COMPROBANTE'
     if (!enEspera || refrescos.current >= MAX_REFRESCOS) return undefined
     const id = setTimeout(() => {
       refrescos.current += 1
@@ -105,6 +108,23 @@ export default function PedidoDetalle({ numero, gracias = false }) {
     }, ESPERA_REFRESCO_MS)
     return () => clearTimeout(id)
   }, [gracias, pedido, cargar])
+
+  // Compra confirmada: se mide una sola vez por pedido (la pantalla de gracias puede recargarse).
+  useEffect(() => {
+    if (!gracias || !pedido || !estaPagado(pedido.estado)) return
+    try {
+      if (window.sessionStorage.getItem(`medido:compra-${pedido.numero}`)) return
+      window.sessionStorage.setItem(`medido:compra-${pedido.numero}`, '1')
+    } catch {
+      // sin almacenamiento: puede repetirse
+    }
+    medir('purchase', {
+      transaction_id: pedido.numero,
+      currency: 'PEN',
+      value: Number(pedido.importes?.total ?? pedido.total),
+      items: (pedido.lineas ?? []).filter((l) => !l.es_envio).map((l) => ({ item_id: String(l.producto), item_name: l.descripcion, price: Number(l.precio_unitario), quantity: Number(l.cantidad) })),
+    })
+  }, [gracias, pedido])
 
   const vigente = pedido?.estado === 'PENDIENTE_PAGO'
   const segundos = useRegresiva(vigente ? pedido?.expira_en : null, cargar)
@@ -138,7 +158,7 @@ export default function PedidoDetalle({ numero, gracias = false }) {
       cerrar.current = await abrirCulqi({
         llavePublica: pagoCfg.llave_publica,
         titulo: tienda?.nombre,
-        total: pedido.total,
+        total: pedido.forma_pago?.cobrado_ahora ?? pedido.total,
         tarjeta: pagoCfg.tarjeta,
         yape: pagoCfg.yape,
         alToken: cobrar,
@@ -256,6 +276,10 @@ export default function PedidoDetalle({ numero, gracias = false }) {
         </p>
       )}
 
+      {pedido.pago_metodo === 'TRANSFERENCIA' && ['PENDIENTE_PAGO', 'POR_VERIFICAR'].includes(pedido.estado) && (
+        <TransferenciaPedido pedido={pedido} alCambiar={setPedido} />
+      )}
+
       {pagado && pedido.estado !== 'PAGADO_SIN_COMPROBANTE' && pedido.estado !== 'PAGADO_FUERA_DE_PLAZO' && <Progreso estado={pedido.estado} modalidad={pedido.modalidad} />}
 
       <div className="ped-rejilla">
@@ -297,6 +321,32 @@ export default function PedidoDetalle({ numero, gracias = false }) {
               <dd>{soles(imp.total ?? pedido.total)}</dd>
             </div>
           </dl>
+          {pedido.forma_pago?.modo === 'ADELANTO' && (
+            <div className="com-adelanto-resumen">
+              <dl className="ped-totales">
+                <div>
+                  <dt>Adelanto {pedido.estado === 'PENDIENTE_PAGO' ? 'a pagar ahora' : 'pagado'}</dt>
+                  <dd>{soles(pedido.forma_pago.cobrado_ahora)}</dd>
+                </div>
+                <div>
+                  <dt>Saldo al recoger en tienda</dt>
+                  <dd>{pedido.estado === 'ENTREGADO' ? 'Pagado' : soles(pedido.forma_pago.saldo)}</dd>
+                </div>
+                {pedido.forma_pago.adelanto_vence_en && pedido.estado !== 'ENTREGADO' && (
+                  <div>
+                    <dt>Puedes recogerlo hasta</dt>
+                    <dd>{new Date(pedido.forma_pago.adelanto_vence_en).toLocaleString('es-PE', { dateStyle: 'medium', timeStyle: 'short' })}</dd>
+                  </div>
+                )}
+              </dl>
+              {pedido.forma_pago.condiciones && <p className="com-chico">{pedido.forma_pago.condiciones}</p>}
+            </div>
+          )}
+          {imp.cupon && Number(imp.descuento_cupon) > 0 && (
+            <p className="com-chico">
+              Cupón {imp.cupon}: ahorraste {soles(imp.descuento_cupon)} (ya está descontado del total).
+            </p>
+          )}
           {imp.igv_exonerado && imp.motivo_igv && <p className="com-chico">{imp.motivo_igv}</p>}
         </section>
 
@@ -350,13 +400,20 @@ export default function PedidoDetalle({ numero, gracias = false }) {
               {pedido.comprobante?.nombre ? ` · ${pedido.comprobante.nombre}` : ''}
             </p>
           </section>
+
+          {pedido.garantias?.length > 0 && (
+            <section className="com-paso" aria-labelledby="ped-gar-t">
+              <h2 id="ped-gar-t">Garantía</h2>
+              <ListaGarantias garantias={pedido.garantias} />
+            </section>
+          )}
         </div>
       </div>
 
       <div className="form-acciones ped-acciones">
-        {pedido.estado === 'PENDIENTE_PAGO' && pagoCfg?.activo && (
+        {pedido.estado === 'PENDIENTE_PAGO' && pedido.pago_metodo !== 'TRANSFERENCIA' && pagoCfg?.activo && (
           <button type="button" className="boton grande" onClick={pagarAhora} disabled={fase === 'procesando' || fase === 'cancelando'}>
-            <Icono nombre="candado" tam={18} /> {fase === 'procesando' ? 'Procesando tu pago…' : `Pagar ahora ${soles(pedido.total)}`}
+            <Icono nombre="candado" tam={18} /> {fase === 'procesando' ? 'Procesando tu pago…' : `Pagar ahora ${soles(pedido.forma_pago?.cobrado_ahora ?? pedido.total)}`}
           </button>
         )}
         {pedido.estado === 'PENDIENTE_PAGO' && (

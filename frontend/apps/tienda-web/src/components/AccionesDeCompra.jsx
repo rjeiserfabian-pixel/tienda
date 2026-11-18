@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { enlaceWhatsapp, urlAbsoluta } from '@/lib/format'
+import BotonAvisame from './BotonAvisame'
 import Icono from './Icono'
 import { useCarrito } from './Proveedores'
 
@@ -52,6 +53,15 @@ export default function AccionesDeCompra({ producto, compacto = false, whatsapp 
   )
 
   if (!puedeComprar) {
+    // Agotado pero con precio: se puede pedir el aviso de cuando vuelva a haber (ficha, no barra fija).
+    if (agotado && !sinPrecio && !compacto) {
+      return (
+        <div className="acc-agotado">
+          <BotonAvisame producto={producto} />
+          {botonWhatsapp}
+        </div>
+      )
+    }
     if (botonWhatsapp) return botonWhatsapp
     return compacto ? null : (
       <p className="prod-aviso" role="note">

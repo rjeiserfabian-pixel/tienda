@@ -368,3 +368,35 @@
   width: 84px;
   flex: none;
 }
+
+/* Avisos al cliente y botón de WhatsApp manual */
+.pedido-avisos li {
+  display: block;
+}
+
+.pedido-wa {
+  display: inline-flex;
+  margin-top: 6px;
+}
+
+/* Pago con adelanto */
+.pedido-adelanto {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primario, #2563eb) 5%, transparent);
+}
+
+/* Comprobante de una transferencia */
+.voucher-imagen {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  margin: 4px auto;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  object-fit: contain;
+  background: #fff;
+}

@@ -36,6 +36,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.auditoria.servicios import registrar
+from apps.caja import servicios as caja
 from apps.core.tenant import contexto_tenant
 from apps.mantenimiento.models import MedioPago
 from apps.organizacion.models import Empresa
@@ -45,7 +46,7 @@ from apps.ventas.exceptions import VentaInvalida
 from apps.ventas.models import ComprobanteVenta, LineaVenta, MotivoNota
 from apps.ventas.servicios import CobroEntrada
 
-from . import catalogo, culqi, deuda_web, pedidos, series_pedido
+from . import catalogo, culqi, deuda_web, pagar, pedidos, series_pedido
 from .exceptions import PedidoInvalido, PedidoNoEncontrado, ReembolsoNoPermitido
 from .models import (
     ConfiguracionPago,
@@ -122,6 +123,8 @@ def ruta_de(pedido: PedidoTienda) -> str:
         raise ReembolsoNoPermitido("Este pedido ya se reembolsó por completo.")
     if not pedido.culqi_cargo_id:
         raise ReembolsoNoPermitido("Este pedido no tiene un cobro de Culqi que devolver.")
+    if _es_adelanto_sin_venta(pedido):
+        return Tipo.SOLO_DINERO  # no hubo venta: solo se devuelve el dinero del adelanto
     if pedido.estado in RUTA_ANULACION:
         return Tipo.ANULACION
     if pedido.estado in RUTA_NOTA:
@@ -132,7 +135,19 @@ def ruta_de(pedido: PedidoTienda) -> str:
 
 
 def _restante(pedido: PedidoTienda) -> Decimal:
-    return pedido.total - pedido.monto_reembolsado
+    """Lo que todavía se puede devolver: lo COBRADO (el total, o solo el adelanto) menos lo ya
+    devuelto."""
+    return pedido.monto_a_cobrar - pedido.monto_reembolsado
+
+
+def _es_adelanto_sin_venta(pedido: PedidoTienda) -> bool:
+    """Un pedido con adelanto que aún no se entregó: solo hay dinero, no hay venta que anular."""
+    return (
+        pedido.pago_modo == PedidoTienda.PagoModo.ADELANTO
+        and pedido.venta_id is None
+        and pedido.estado
+        in (Estado.ADELANTO_PAGADO, Estado.EN_PREPARACION, Estado.LISTO_PARA_RECOJO)
+    )
 
 
 def _hay_deuda(pedido: PedidoTienda) -> bool:
@@ -417,6 +432,39 @@ def reembolsar(
     return completar(reembolso.pk, usuario=usuario)
 
 
+def devolver_adelanto_no_recogido(pedido_id: int, monto: Decimal) -> ReembolsoPedido:
+    """Devuelve (por Culqi) la parte del adelanto que corresponde a un pedido no recogido.
+
+    Lo llama el sistema solo (sin usuario). El stock ya se soltó y el pedido pasa a «reembolso
+    por confirmar»; al aprobarlo Culqi queda en «no recogido» y la salida entra a caja.
+    """
+    with transaction.atomic():
+        pedido = PedidoTienda.objects.sin_ambito().select_for_update().get(pk=pedido_id)
+        if not _es_adelanto_sin_venta(pedido) or monto <= 0 or monto > _restante(pedido):
+            raise ReembolsoNoPermitido("Este adelanto no se puede devolver.")
+        secuencia = ReembolsoPedido.objects.sin_ambito().filter(pedido=pedido).count() + 1
+        reembolso = ReembolsoPedido.objects.sin_ambito().create(
+            organizacion_id=pedido.organizacion_id,
+            pedido=pedido,
+            tipo=Tipo.SOLO_DINERO,
+            estado_previo=pedido.estado,
+            motivo_tipo=ReembolsoPedido.Motivo.NO_RECOGIDO,
+            motivo="No recogió su pedido a tiempo (devolución automática del adelanto)",
+            monto=monto,
+            clave=f"rf-{pedido.numero}-{secuencia}-{_centimos(monto)}",
+        )
+        pedido.estado = Estado.REEMBOLSO_PENDIENTE
+        pedido.save(update_fields=["estado", "actualizado_en"])
+        HistorialPedido.objects.create(
+            pedido=pedido,
+            tipo=HistorialPedido.Tipo.ESTADO,
+            estado=Estado.REEMBOLSO_PENDIENTE,
+            texto=f"Devolución automática del adelanto: S/ {monto:,.2f}"[:500],
+        )
+        transaction.on_commit(catalogo.invalidar)
+    return completar(reembolso.pk, usuario=None)
+
+
 # ---------------------------------------------------------------------------
 # Paso 2: devolver el dinero en Culqi
 # ---------------------------------------------------------------------------
@@ -508,6 +556,38 @@ def _completar(reembolso_id: int, *, usuario, manual: bool) -> ReembolsoPedido:
     return _cerrar(reembolso_id, referencia, usuario)
 
 
+def _egreso_de_adelanto(pedido: PedidoTienda, reembolso: ReembolsoPedido) -> None:
+    """Lo que Culqi devolvió del adelanto sale de la cuenta donde entró (sin venta de por medio)."""
+    config = (
+        ConfiguracionPago.objects.sin_ambito()
+        .filter(organizacion_id=pedido.organizacion_id)
+        .first()
+    )
+    cobra = (
+        Empresa.objects.sin_ambito().filter(pk=getattr(config, "empresa_cobra_id", None)).first()
+    )
+    if cobra is None:
+        return
+    medio = pagar_medio(pedido)
+    with contexto_tenant(pedido.organizacion_id, _empresas(pedido.organizacion_id), None):
+        pago = pagar._preparar_cuentas(pedido.organizacion_id, [cobra], cobra, medio)
+        cuenta = ventas.resolver_cuenta(cobra, pago, None, "PEN")
+        caja.registrar_devolucion_de_adelanto_de_tienda(
+            empresa=cobra,
+            cuenta=cuenta,
+            monto=reembolso.monto,
+            fecha=timezone.localdate(),
+            referencia=reembolso.culqi_reembolso_id or pedido.culqi_cargo_id,
+            glosa=f"Devolución del adelanto del pedido {pedido.numero} (tienda virtual)",
+            pedido_id=pedido.pk,
+            medio_pago=pago,
+        )
+
+
+def pagar_medio(pedido: PedidoTienda) -> str:
+    return pedido.culqi_medio or "tarjeta"
+
+
 def _cerrar(reembolso_id: int, referencia: str, usuario) -> ReembolsoPedido:
     """Culqi devolvió el dinero: el reembolso queda aprobado y el pedido en su estado final."""
     with transaction.atomic():
@@ -521,14 +601,21 @@ def _cerrar(reembolso_id: int, referencia: str, usuario) -> ReembolsoPedido:
         reembolso.aprobado_en = ahora
         reembolso.mensaje = ""
         reembolso.save()
-        pedido.monto_reembolsado = min(pedido.monto_reembolsado + reembolso.monto, pedido.total)
-        pedido.estado = (
-            Estado.REEMBOLSADO
-            if pedido.monto_reembolsado >= pedido.total
-            else Estado.REEMBOLSADO_PARCIAL
-        )
+        cobrado = pedido.monto_a_cobrar
+        pedido.monto_reembolsado = min(pedido.monto_reembolsado + reembolso.monto, cobrado)
+        if reembolso.motivo_tipo == ReembolsoPedido.Motivo.NO_RECOGIDO:
+            pedido.estado = Estado.NO_RECOGIDO  # fin del adelanto de un pedido no recogido
+            pedido.adelanto_devuelto = reembolso.monto
+        else:
+            pedido.estado = (
+                Estado.REEMBOLSADO
+                if pedido.monto_reembolsado >= cobrado
+                else Estado.REEMBOLSADO_PARCIAL
+            )
         pedido.motivo_atencion = ""
         pedido.save()
+        if pedido.pago_modo == PedidoTienda.PagoModo.ADELANTO and pedido.venta_id is None:
+            _egreso_de_adelanto(pedido, reembolso)
         HistorialPedido.objects.create(
             pedido=pedido,
             tipo=HistorialPedido.Tipo.ESTADO,
@@ -595,6 +682,8 @@ def enviar_correo(reembolso_id: int) -> bool:
     )
     if reembolso.estado != ReembolsoPedido.Estado.APROBADO:
         return False
+    if reembolso.motivo_tipo == ReembolsoPedido.Motivo.NO_RECOGIDO:
+        return False  # el aviso de «no se recogió» ya le cuenta cuánto se le devuelve
     pedido = reembolso.pedido
     cuerpo = (
         f"Hola {pedido.cuenta.nombres},\n\n"

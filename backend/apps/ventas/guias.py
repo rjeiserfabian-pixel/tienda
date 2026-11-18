@@ -586,7 +586,9 @@ def mitades_de_traspaso(
     mitades_de = MovimientoInventario.objects.select_related("almacen__sucursal", "empresa").filter(
         traspaso_id=movimiento.traspaso_id, origen=movimiento.origen
     )
-    if not entre_empresas:  # en un traslado entre empresas las dos mitades son de empresas distintas
+    if (
+        not entre_empresas
+    ):  # en un traslado entre empresas las dos mitades son de empresas distintas
         mitades_de = mitades_de.filter(empresa_id=movimiento.empresa_id)
     mitades = {m.tipo: m for m in mitades_de}
     if set(mitades) != {TipoMovimiento.SALIDA, TipoMovimiento.ENTRADA}:

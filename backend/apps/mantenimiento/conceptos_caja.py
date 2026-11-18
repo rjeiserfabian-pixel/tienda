@@ -35,6 +35,8 @@ CONCEPTOS = (
     ("DEVOLUCION_ANTICIPO", "Devolución de un anticipo", INGRESO, True),
     ("ADELANTO_SERVICIO", "Adelanto de servicio técnico", INGRESO, True),
     ("DEVOLUCION_ADELANTO", "Devolución de adelanto", EGRESO, True),
+    ("ADELANTO_TIENDA", "Adelanto de un pedido de la tienda virtual", INGRESO, True),
+    ("DEVOLUCION_ADELANTO_TIENDA", "Devolución de adelanto de la tienda virtual", EGRESO, True),
     ("ADELANTO_PERSONAL", "Adelanto o préstamo a un trabajador", EGRESO, True),
     ("PAGO_PLANILLA", "Pago de sueldos (planilla)", EGRESO, True),
     ("DEPOSITO_CTS", "Depósito de CTS", EGRESO, True),

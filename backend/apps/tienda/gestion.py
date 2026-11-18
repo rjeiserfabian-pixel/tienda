@@ -15,8 +15,21 @@ from django.db.models import Count, Q
 from django.utils import timezone
 
 from apps.auditoria.servicios import registrar
+from apps.core.tenant import contexto_tenant
+from apps.mantenimiento.models import EstadoRegistro, MedioPago
+from apps.organizacion.models import Empresa
+from apps.ventas.exceptions import VentaInvalida
 
-from . import catalogo, deuda_web, pagar, pedidos, reembolsos, series_pedido
+from . import (
+    avisos,
+    catalogo,
+    deuda_web,
+    pagar,
+    pedidos,
+    reembolsos,
+    series_pedido,
+    transferencias,
+)
 from .exceptions import PedidoInvalido, PedidoNoEncontrado, TransicionInvalida
 from .models import (
     DeudaCobroTienda,
@@ -25,6 +38,7 @@ from .models import (
     LineaPedido,
     PedidoTienda,
     ReembolsoPedido,
+    ReservaStock,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,12 +52,14 @@ ATENCION = (
 
 # Grupos que usa el panel para sus pestañas.
 GRUPOS = {
-    "por_atender": [Estado.PAGADO, Estado.EN_PREPARACION],
+    "por_atender": [Estado.PAGADO, Estado.ADELANTO_PAGADO, Estado.EN_PREPARACION],
     "listos": [Estado.LISTO_PARA_RECOJO, Estado.ENVIADO],
     "entregados": [Estado.ENTREGADO],
     "sin_pagar": [Estado.PENDIENTE_PAGO, Estado.CANCELADO, Estado.EXPIRADO],
     "atencion": list(ATENCION),
     "reembolsados": [Estado.REEMBOLSADO, Estado.REEMBOLSADO_PARCIAL],
+    "no_recogidos": [Estado.NO_RECOGIDO],
+    "por_verificar": [Estado.POR_VERIFICAR],
 }
 MAX_TEXTO = 500
 TAM_PAGINA = 20
@@ -204,8 +220,10 @@ def detalle(p: PedidoTienda) -> dict:
             "correo": p.cuenta.correo,
             "correo_verificado": p.cuenta.verificada,
             "celular": p.cuenta.celular,
+            "acepta_whatsapp": p.cuenta.acepta_whatsapp,
         },
         "pago": {
+            "metodo": p.pago_metodo,
             "medio": p.culqi_medio,
             "cargo": _cargo_parcial(p.culqi_cargo_id),
             "pagado_en": p.pagado_en.isoformat() if p.pagado_en else None,
@@ -261,6 +279,8 @@ def detalle(p: PedidoTienda) -> dict:
             for r in ReembolsoPedido.objects.sin_ambito().filter(pedido=p).order_by("id")
         ],
         "monto_reembolsado": format(p.monto_reembolsado, "f"),
+        "avisos": avisos.salida(p),
+        "whatsapp_manual": avisos.enlace_whatsapp_manual(p),
         "acciones": acciones_posibles(p),
     }
 
@@ -270,13 +290,14 @@ def detalle(p: PedidoTienda) -> dict:
 # ---------------------------------------------------------------------------
 def siguiente_estados(p: PedidoTienda) -> list[str]:
     """Estados a los que se puede pasar desde el actual."""
-    if p.estado == Estado.PAGADO:
+    if p.estado in (Estado.PAGADO, Estado.ADELANTO_PAGADO):
         return [Estado.EN_PREPARACION]
     if p.estado == Estado.EN_PREPARACION:
         return [Estado.ENVIADO if p.modalidad == "ENVIO" else Estado.LISTO_PARA_RECOJO]
     if p.estado in (Estado.ENVIADO, Estado.LISTO_PARA_RECOJO):
-        return [Estado.ENTREGADO]
-    if p.estado == Estado.PENDIENTE_PAGO:
+        # Con adelanto, entregar exige cobrar el saldo y emitir el comprobante (acción aparte).
+        return [] if p.pago_modo == PedidoTienda.PagoModo.ADELANTO else [Estado.ENTREGADO]
+    if p.estado in (Estado.PENDIENTE_PAGO, Estado.POR_VERIFICAR):
         return [Estado.CANCELADO]
     return []
 
@@ -294,6 +315,9 @@ def acciones_posibles(p: PedidoTienda) -> dict:
         "cambiar_serie": p.estado in series_pedido.ESTADOS_EDITABLES and p.venta_id is not None,
         "siguientes": [{"estado": e, "texto": Estado(e).label} for e in siguiente_estados(p)],
         "reintentar_comprobante": p.estado == Estado.PAGADO_SIN_COMPROBANTE,
+        "cobrar_saldo": p.pago_modo == PedidoTienda.PagoModo.ADELANTO and p.estado in ESTADOS_SALDO,
+        "verificar_transferencia": p.estado == Estado.POR_VERIFICAR
+        and p.pago_metodo == PedidoTienda.PagoMetodo.TRANSFERENCIA,
         "reembolsar": _puede_reembolsar(p),
         "reintentar_reembolso": p.estado == Estado.REEMBOLSO_PENDIENTE,
         "avisa_al_cliente": [
@@ -339,7 +363,10 @@ def cambiar_estado(
         if nuevo == Estado.CANCELADO:
             if pedidos._con_pago_en_camino().filter(pedido=pedido).exists():
                 raise TransicionInvalida("El cliente está pagando en este momento: espera.")
-            pedidos.liberar_reservas(pedido)
+            if anterior == Estado.POR_VERIFICAR:
+                transferencias.cancelar_por_el_personal(pedido)  # también borra el comprobante
+            else:
+                pedidos.liberar_reservas(pedido)
         pedido.estado = nuevo
         update = ["estado", "actualizado_en"]
         if seguimiento:
@@ -363,6 +390,9 @@ def cambiar_estado(
         )
         if nuevo in (Estado.ENVIADO, Estado.LISTO_PARA_RECOJO):
             transaction.on_commit(lambda: _encolar_aviso(pedido.pk, nota))
+        evento = avisos.EVENTO_POR_ESTADO.get(nuevo)
+        if evento:  # correo (los que faltaban) y WhatsApp
+            transaction.on_commit(lambda: avisos.encolar(pedido.pk, evento))
         transaction.on_commit(catalogo.invalidar)
     return pedido
 
@@ -415,6 +445,119 @@ def reintentar_comprobante(organizacion_id: int, numero: str, *, usuario) -> Ped
 
 
 # ---------------------------------------------------------------------------
+# Cobrar el saldo de un pedido con adelanto y entregarlo
+# ---------------------------------------------------------------------------
+ESTADOS_SALDO = (Estado.ADELANTO_PAGADO, Estado.EN_PREPARACION, Estado.LISTO_PARA_RECOJO)
+
+
+def medios_para_saldo(organizacion_id: int) -> list[dict]:
+    """Con qué puede pagar el cliente el saldo en la tienda."""
+    medios = MedioPago.objects.sin_ambito().filter(
+        organizacion_id=organizacion_id, estado=EstadoRegistro.ACTIVO
+    )
+    return [
+        {
+            "id": m.pk,
+            "nombre": m.nombre,
+            "tipo": m.tipo,
+            "requiere_referencia": m.requiere_referencia,
+        }
+        for m in medios.order_by("nombre")
+    ]
+
+
+def datos_del_saldo(organizacion_id: int, numero: str) -> dict:
+    """Lo que el personal necesita para cobrar el saldo (y si todavía se puede)."""
+    p = pedido_de(organizacion_id, numero)
+    puede = p.pago_modo == PedidoTienda.PagoModo.ADELANTO and p.estado in ESTADOS_SALDO
+    return {
+        "puede": puede,
+        "total": format(p.total, "f"),
+        "adelanto": format(p.adelanto_monto, "f"),
+        "saldo": format(p.saldo, "f"),
+        "vence_en": p.adelanto_vence_en.isoformat() if p.adelanto_vence_en else None,
+        "medios": medios_para_saldo(organizacion_id) if puede else [],
+    }
+
+
+def cobrar_saldo_y_entregar(
+    organizacion_id: int, numero: str, *, medio_pago_id: int, referencia: str, usuario
+) -> PedidoTienda:
+    """El cliente vino a recoger: se cobra el saldo, se emite el comprobante por el TOTAL (el
+    adelanto ya pagado se descuenta) y el pedido queda entregado. Todo o nada."""
+    referencia = _limpio(referencia)[:60]
+    with transaction.atomic():
+        pedido = (
+            _base(organizacion_id)
+            .select_for_update(of=("self",))
+            .select_related("cuenta", "punto")
+            .filter(numero=numero)
+            .first()
+        )
+        if pedido is None:
+            raise PedidoNoEncontrado()
+        if pedido.pago_modo != PedidoTienda.PagoModo.ADELANTO:
+            raise TransicionInvalida("Este pedido se pagó completo: no tiene saldo por cobrar.")
+        if pedido.estado not in ESTADOS_SALDO:
+            raise TransicionInvalida(
+                f"Un pedido «{pedido.get_estado_display()}» ya no admite cobrar el saldo."
+            )
+        medio = (
+            MedioPago.objects.sin_ambito()
+            .filter(pk=medio_pago_id, organizacion_id=organizacion_id, estado=EstadoRegistro.ACTIVO)
+            .first()
+        )
+        if medio is None:
+            raise PedidoInvalido("Elige con qué paga el cliente el saldo.")
+        if medio.requiere_referencia and not referencia:
+            raise PedidoInvalido(f"Escribe el número de operación del pago con {medio.nombre}.")
+        sucursal = None
+        if pedido.punto_id:
+            almacen = pedido.punto.almacenes.select_related("sucursal").first()
+            sucursal = almacen.sucursal if almacen else None
+        empresas = list(
+            Empresa.objects.sin_ambito()
+            .filter(organizacion_id=organizacion_id)
+            .values_list("pk", flat=True)
+        )
+        try:
+            with contexto_tenant(organizacion_id, empresas, None):
+                venta = pagar._registrar_venta(
+                    pedido,
+                    pedido.culqi_medio or "tarjeta",
+                    saldo={"medio_pago": medio, "referencia": referencia, "sucursal": sucursal},
+                )
+        except VentaInvalida as error:
+            raise PedidoInvalido(error.mensaje) from None
+        anterior = pedido.estado
+        pedido.venta = venta
+        pedido.estado = Estado.ENTREGADO
+        pedido.save(update_fields=["venta", "estado", "actualizado_en"])
+        # El stock salió con la venta: el apartado cumplió su papel.
+        ReservaStock.objects.sin_ambito().filter(pedido=pedido, liberada_en__isnull=True).update(
+            liberada_en=timezone.now()
+        )
+        HistorialPedido.objects.create(
+            pedido=pedido,
+            tipo=HistorialPedido.Tipo.ESTADO,
+            estado=Estado.ENTREGADO,
+            texto=f"Saldo S/ {pedido.saldo} cobrado con {medio.nombre}",
+            **_quien(usuario),
+        )
+        registrar(
+            "tienda.pedido_saldo_cobrado",
+            recurso_tipo="pedido_tienda",
+            recurso_id=pedido.pk,
+            organizacion_id=organizacion_id,
+            resumen=f"Pedido {pedido.numero}: saldo de S/ {pedido.saldo} cobrado y entregado",
+            detalle={"de": anterior, "medio": medio.nombre, "saldo": str(pedido.saldo)},
+        )
+        transaction.on_commit(lambda: avisos.encolar(pedido.pk, "PEDIDO_ENTREGADO"))
+        transaction.on_commit(catalogo.invalidar)
+    return pedido
+
+
+# ---------------------------------------------------------------------------
 # Aviso al cliente
 # ---------------------------------------------------------------------------
 def _encolar_aviso(pedido_id: int, nota: str) -> None:
@@ -456,4 +599,5 @@ def enviar_aviso(pedido_id: int, nota: str = "") -> bool:
         cuerpo += f"\n{nota}\n"
     cuerpo += f"\nPuedes ver tu pedido en {url}"
     send_mail(asunto, cuerpo, None, [pedido.cuenta.correo], fail_silently=False)
+    avisos.anotar_correo(pedido, avisos.EVENTO_POR_ESTADO[pedido.estado], enviado=True)
     return True

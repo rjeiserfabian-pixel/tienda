@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
+from django.db import InterfaceError, OperationalError
 from django.db.models import Q
 from django.utils import timezone
 
@@ -52,6 +53,76 @@ def enviar_aviso_pedido(pedido_id: int, nota: str = "") -> bool:
     from . import gestion
 
     return gestion.enviar_aviso(pedido_id, nota)
+
+
+@shared_task(name="tienda.avisar_pedido")
+def avisar_pedido(pedido_id: int, evento: str) -> int:
+    """Anota y manda los avisos de un cambio del pedido (correo y WhatsApp)."""
+    from . import avisos
+
+    pendientes = avisos.procesar(pedido_id, evento)
+    for aviso_id in pendientes:
+        enviar_whatsapp_pedido.delay(aviso_id)
+    return len(pendientes)
+
+
+@shared_task(
+    bind=True,
+    name="tienda.enviar_whatsapp_pedido",
+    autoretry_for=(OperationalError, InterfaceError),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 5},
+)
+def enviar_whatsapp_pedido(self, aviso_id: int) -> str:
+    """Manda un aviso de WhatsApp de la bandeja. Se reintenta solo si el fallo es pasajero."""
+    from apps.servicio_tecnico.proveedores import ErrorTemporal
+
+    from . import avisos
+
+    try:
+        return avisos.mandar_whatsapp(aviso_id)
+    except ErrorTemporal as error:
+        raise self.retry(exc=error, countdown=60 * 2**self.request.retries) from error
+
+
+@shared_task(name="tienda.vencer_adelantos")
+def vencer_adelantos() -> int:
+    """Resuelve los pedidos con adelanto que no se recogieron a tiempo (devuelve o retiene)."""
+    from . import adelantos_vencidos
+
+    return adelantos_vencidos.vencer_adelantos()
+
+
+@shared_task(name="tienda.recordar_adelantos")
+def recordar_adelantos() -> int:
+    """Recuerda, una vez, que el plazo para recoger el pedido está por vencer."""
+    from . import adelantos_vencidos
+
+    return adelantos_vencidos.recordar_adelantos()
+
+
+@shared_task(name="tienda.recordar_carritos")
+def recordar_carritos() -> int:
+    """Manda los recordatorios de carrito abandonado que ya toquen."""
+    from . import carrito_abandonado
+
+    return carrito_abandonado.recordar_carritos()
+
+
+@shared_task(name="tienda.pedir_resenas")
+def pedir_resenas() -> int:
+    """Pide la reseña de lo entregado hace unos días (si el negocio lo activó)."""
+    from . import resenas
+
+    return resenas.pedir_resenas()
+
+
+@shared_task(name="tienda.avisar_disponibles")
+def avisar_disponibles() -> int:
+    """Avisa a quienes pidieron «avísame cuando llegue» de lo que ya tiene stock."""
+    from . import favoritos
+
+    return favoritos.avisar_disponibles()
 
 
 @shared_task(name="tienda.expirar_pedidos")

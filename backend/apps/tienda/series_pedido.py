@@ -16,6 +16,7 @@ import logging
 from django.db import transaction
 
 from apps.auditoria.servicios import registrar
+from apps.garantias import servicios as garantias_servicios
 from apps.inventario import series as inv_series
 from apps.inventario.exceptions import MovimientoInvalido
 from apps.ventas.exceptions import VentaInvalida
@@ -174,6 +175,8 @@ def cambiar(
         raise PedidoInvalido(str(error)) from None
     linea.series_fisicas = [nueva if s == anterior else s for s in actuales]
     linea.save(update_fields=["series_fisicas", "actualizado_en"])
+    # La garantía es de la unidad que el cliente recibe, no de la que dice el comprobante.
+    garantias_servicios.cambiar_serie(venta_linea.pk, anterior, nueva)
     CambioSerie.objects.sin_ambito().create(
         organizacion_id=organizacion_id,
         pedido=pedido,
@@ -249,6 +252,9 @@ def deshacer_cambios(pedido: PedidoTienda) -> int:
                 )
             except MovimientoInvalido as error:
                 raise VentaInvalida(str(error)) from None
+            # La garantía vuelve a la serie del comprobante: así la anulación o la nota de crédito
+            # (que conocen esa serie) encuentran la garantía que deben cerrar.
+            garantias_servicios.cambiar_serie(venta_linea.pk, fisica, asignada)
             invertidas += 1
         linea.series_fisicas = []
         linea.save(update_fields=["series_fisicas", "actualizado_en"])

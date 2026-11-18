@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ErrorTienda, llamar } from '@/lib/cliente'
 import { enlaceWhatsapp, soles, urlFoto } from '@/lib/format'
+import { medir } from '@/lib/medicion'
 import { abrirCulqi } from '@/lib/pago'
 import ComprobanteForm, { COMPROBANTE_INICIAL, comprobanteParaApi, validarComprobante } from './ComprobanteForm'
 import DireccionForm from './cuenta/DireccionForm'
@@ -177,6 +178,11 @@ export default function CompraVista() {
   const [puntoId, setPuntoId] = useState(null)
   const [agregando, setAgregando] = useState(false)
   const [cot, setCot] = useState(null)
+  const [cuponEscrito, setCuponEscrito] = useState('')
+  const [pagoModo, setPagoModo] = useState('COMPLETO') // COMPLETO | ADELANTO (solo al recoger en tienda)
+  const [metodo, setMetodo] = useState('CULQI') // CULQI (tarjeta o Yape) | TRANSFERENCIA (depósito con comprobante)
+  const [cuentaTransf, setCuentaTransf] = useState(null)
+  const [cuponAplicado, setCuponAplicado] = useState('') // el código que se manda al cotizar y al crear el pedido
   const [errorCot, setErrorCot] = useState(null)
   const [cargandoCot, setCargandoCot] = useState(false)
   const [config, setConfig] = useState(null)
@@ -204,6 +210,18 @@ export default function CompraVista() {
     const guardado = leerSesion(CLAVE_COMPROBANTE)
     if (guardado) setComp({ ...COMPROBANTE_INICIAL, ...guardado })
   }, [])
+
+  // Empezó a pagar (una vez por visita, con los productos del carrito).
+  const sinMedir = useRef(true)
+  useEffect(() => {
+    if (!sinMedir.current || !cot?.lineas?.length) return
+    sinMedir.current = false
+    medir('begin_checkout', {
+      currency: 'PEN',
+      value: Number(cot.totales?.total ?? cot.total ?? 0),
+      items: cot.lineas.map((l) => ({ item_id: String(l.producto), item_name: l.nombre, price: Number(l.precio_unitario), quantity: l.cantidad })),
+    })
+  }, [cot])
 
   // Los datos del comprobante se recuerdan mientras dure la visita (no se guardan en el equipo).
   useEffect(() => {
@@ -262,6 +280,7 @@ export default function CompraVista() {
         cuerpo.modalidad = 'RECOJO'
         if (puntoId) cuerpo.punto = puntoId
       }
+      if (cuponAplicado) cuerpo.cupon = cuponAplicado
       try {
         const datos = await llamar('compra/cotizar', { metodo: 'POST', cuerpo, signal: control.signal })
         setCot(datos)
@@ -277,7 +296,13 @@ export default function CompraVista() {
       clearTimeout(espera)
       control.abort()
     }
-  }, [cuenta?.autenticado, listo, items, modalidad, direccionId, puntoId, intento])
+  }, [cuenta?.autenticado, listo, items, modalidad, direccionId, puntoId, intento, cuponAplicado])
+
+  // Si la oferta de adelanto deja de valer (cambió el carrito o la entrega), se vuelve al pago completo.
+  const hayOfertaAdelanto = Boolean(cot?.totales?.adelanto?.disponible)
+  useEffect(() => {
+    if (pagoModo === 'ADELANTO' && !hayOfertaAdelanto) setPagoModo('COMPLETO')
+  }, [pagoModo, hayOfertaAdelanto])
 
   const opciones = cot?.entrega?.opciones
   // Modalidad por defecto cuando se sabe qué ofrece la tienda.
@@ -316,7 +341,20 @@ export default function CompraVista() {
   const envio = entrega?.envio
   const tot = cot?.totales ?? null
   const totalPagar = tot?.total ?? cot?.total
+  const cuponValido = tot?.cupon ?? null
+  const oferta = tot?.adelanto?.disponible ? tot.adelanto : null
+  const conAdelanto = pagoModo === 'ADELANTO' && Boolean(oferta)
+  const aCobrarAhora = conAdelanto ? oferta.monto : totalPagar
+  const cuponEsEnvio = cuponValido?.tipo === 'ENVIO_GRATIS'
+  const antesDelDescuento = tot ? (cuponEsEnvio ? tot.subtotal_productos : String(Number(tot.subtotal_productos) + Number(tot.descuento ?? 0))) : null
   const pagoActivo = pagoCfg?.activo === true
+  // Transferencia: solo si todos los productos son de la empresa dueña de la cuenta y sin adelanto.
+  const infoTransf = pagoCfg?.transferencia?.activa ? pagoCfg.transferencia : null
+  const empresasPedido = tot?.por_empresa ?? []
+  const cuentasTransf = (infoTransf?.cuentas ?? []).filter((c) => empresasPedido.length === 1 && c.titular === empresasPedido[0].razon_social)
+  const transfDisponible = cuentasTransf.length > 0
+  const porTransferencia = transfDisponible && (metodo === 'TRANSFERENCIA' || !pagoActivo)
+  const cuentaElegida = cuentasTransf.find((c) => c.id === cuentaTransf) ?? cuentasTransf[0] ?? null
   const correoOk = cuenta.perfil?.correo_verificado !== false
   const ocupado = fase === 'creando' || fase === 'procesando'
 
@@ -364,6 +402,10 @@ export default function CompraVista() {
         modalidad,
         ...(modalidad === 'ENVIO' ? { direccion: direccionId } : { punto: puntoId }),
         comprobante: comprobanteParaApi(comp),
+        // Solo se manda un cupón que el servidor ya validó en la cotización.
+        ...(tot?.cupon ? { cupon: tot.cupon.codigo } : {}),
+        ...(conAdelanto ? { pago: 'ADELANTO' } : {}),
+        ...(porTransferencia ? { metodo: 'TRANSFERENCIA', cuenta_transferencia: cuentaElegida.id } : {}),
       }
       const firma = JSON.stringify(cuerpo)
       let ref = leerSesion(CLAVE_PEDIDO)
@@ -375,10 +417,17 @@ export default function CompraVista() {
       const pedido = await llamar('pedidos', { metodo: 'POST', cuerpo: { ...cuerpo, clave_idempotencia: ref.clave } })
       guardarSesion(CLAVE_PEDIDO, { ...ref, numero: pedido.numero })
       setNumeroPedido(pedido.numero)
+      if (porTransferencia) {
+        // Sin cobro en línea: se le muestra a qué cuenta pagar y se le pide su comprobante.
+        guardarSesion(CLAVE_PEDIDO, null)
+        vaciar()
+        router.push(`/cuenta/pedidos/${encodeURIComponent(pedido.numero)}`)
+        return
+      }
       cerrarCulqi.current = await abrirCulqi({
         llavePublica: pagoCfg.llave_publica,
         titulo: nombreTienda,
-        total: pedido.total,
+        total: pedido.forma_pago?.cobrado_ahora ?? pedido.total,
         tarjeta: pagoCfg.tarjeta,
         yape: pagoCfg.yape,
         alToken: (token) => cobrar(pedido.numero, token),
@@ -433,12 +482,23 @@ export default function CompraVista() {
     )
   }
 
+  function aplicarCupon(evento) {
+    evento.preventDefault()
+    const codigo = cuponEscrito.trim().toUpperCase().replace(/\s/g, '')
+    if (codigo) setCuponAplicado(codigo)
+  }
+
+  function quitarCupon() {
+    setCuponAplicado('')
+    setCuponEscrito('')
+  }
+
   const textoEnvio = !cot
     ? '…'
     : entrega?.modalidad === 'ENVIO' && envio?.disponible
       ? envio.paga_en_destino
         ? 'Lo pagas al recibir'
-        : envio.gratis
+        : envio.gratis || cuponEsEnvio
           ? 'Gratis'
           : soles(tot?.costo_envio ?? cot.costo_envio)
       : entrega?.modalidad === 'RECOJO'
@@ -618,7 +678,7 @@ export default function CompraVista() {
               <span className="com-num">3</span> Pago
             </h2>
             {pagoCfg === null && <span className="esqueleto" style={{ height: 56, borderRadius: 12 }} />}
-            {pagoCfg && pagoActivo && (
+            {pagoCfg && pagoActivo && !porTransferencia && (
               <p className="alerta" role="note">
                 <Icono nombre="candado" tam={18} />
                 <span>
@@ -627,7 +687,44 @@ export default function CompraVista() {
                 </span>
               </p>
             )}
-            {pagoCfg && !pagoActivo && (
+            {pagoCfg && transfDisponible && (
+              <fieldset className="com-adelanto">
+                <legend>¿Cómo quieres pagar?</legend>
+                {pagoActivo && (
+                  <label className={`com-opcion${!porTransferencia ? ' activa' : ''}`}>
+                    <input type="radio" name="pago-metodo" checked={!porTransferencia} onChange={() => setMetodo('CULQI')} />
+                    <span>
+                      <strong>Tarjeta o Yape</strong>
+                      <small>Pago inmediato y seguro.</small>
+                    </span>
+                  </label>
+                )}
+                <label className={`com-opcion${porTransferencia ? ' activa' : ''}`}>
+                  <input type="radio" name="pago-metodo" checked={porTransferencia} onChange={() => {
+                    setMetodo('TRANSFERENCIA')
+                    setPagoModo('COMPLETO')
+                  }} />
+                  <span>
+                    <strong>Transferencia o depósito</strong>
+                    <small>Pagas desde tu banco y subes tu comprobante. Tienes {infoTransf.horas} horas.</small>
+                  </span>
+                </label>
+                {porTransferencia && cuentasTransf.length > 1 && (
+                  <div className="campo">
+                    <label htmlFor="com-cuenta-transf">¿A qué cuenta vas a pagar?</label>
+                    <select id="com-cuenta-transf" value={cuentaElegida.id} onChange={(e) => setCuentaTransf(Number(e.target.value))}>
+                      {cuentasTransf.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.banco ? `${c.banco} · ` : ''}
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </fieldset>
+            )}
+            {pagoCfg && !pagoActivo && !porTransferencia && (
               <p className="alerta aviso" role="note">
                 <Icono nombre="info" tam={18} />
                 <span>El pago en línea estará disponible pronto. Mientras tanto puedes enviarnos tu pedido por WhatsApp y lo coordinamos.</span>
@@ -655,11 +752,69 @@ export default function CompraVista() {
                   </li>
                 ))}
               </ul>
+              <div className="com-cupon">
+                {cuponValido ? (
+                  <p className="com-cupon-ok" role="status">
+                    <Icono nombre="etiqueta" tam={16} />
+                    <span>
+                      Cupón <b>{cuponValido.codigo}</b> aplicado
+                      {cuponEsEnvio ? ': envío gratis' : ''}
+                    </span>
+                    <button type="button" className="enlace" onClick={quitarCupon} disabled={ocupado}>
+                      Quitar
+                    </button>
+                  </p>
+                ) : (
+                  <form className="com-cupon-form" onSubmit={aplicarCupon}>
+                    <label htmlFor="com-cupon-codigo">¿Tienes un cupón?</label>
+                    <div>
+                      <input
+                        id="com-cupon-codigo"
+                        value={cuponEscrito}
+                        onChange={(e) => setCuponEscrito(e.target.value.toUpperCase())}
+                        maxLength={40}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder="Escribe tu código"
+                        aria-describedby={cot.totales?.cupon_error ? 'com-cupon-error' : undefined}
+                        aria-invalid={cot.totales?.cupon_error ? 'true' : undefined}
+                      />
+                      <button type="submit" className="boton secundario chico" disabled={!cuponEscrito.trim() || ocupado}>
+                        Aplicar
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {cot.totales?.cupon_error && (
+                  <p id="com-cupon-error" className="campo-error" role="alert">
+                    {cot.totales.cupon_error}
+                    {cuponAplicado && (
+                      <>
+                        {' '}
+                        <button type="button" className="enlace" onClick={quitarCupon}>
+                          Quitar
+                        </button>
+                      </>
+                    )}
+                  </p>
+                )}
+                {cuponValido?.aviso && (
+                  <p className="com-chico" role="note">
+                    {cuponValido.aviso}
+                  </p>
+                )}
+              </div>
               <dl>
                 <div>
                   <dt>Productos</dt>
-                  <dd>{soles(tot?.subtotal_productos ?? cot.subtotal)}</dd>
+                  <dd>{soles(antesDelDescuento ?? cot.subtotal)}</dd>
                 </div>
+                {cuponValido && !cuponEsEnvio && Number(tot.descuento) > 0 && (
+                  <div className="com-descuento">
+                    <dt>Cupón {cuponValido.codigo}</dt>
+                    <dd>− {soles(tot.descuento)}</dd>
+                  </div>
+                )}
                 <div>
                   <dt>Envío</dt>
                   <dd>{textoEnvio}</dd>
@@ -671,9 +826,21 @@ export default function CompraVista() {
                   </div>
                 )}
                 <div className="car-total">
-                  <dt>Total a pagar</dt>
+                  <dt>{conAdelanto ? 'Total del pedido' : 'Total a pagar'}</dt>
                   <dd>{soles(totalPagar)}</dd>
                 </div>
+                {conAdelanto && (
+                  <>
+                    <div className="com-descuento">
+                      <dt>Pagas ahora (adelanto)</dt>
+                      <dd>{soles(oferta.monto)}</dd>
+                    </div>
+                    <div>
+                      <dt>Saldo al recoger en tienda</dt>
+                      <dd>{soles(oferta.saldo)}</dd>
+                    </div>
+                  </>
+                )}
               </dl>
               {tot?.igv_exonerado && (
                 <p className="alerta ok" role="note">
@@ -705,7 +872,41 @@ export default function CompraVista() {
           ) : (
             <span className="esqueleto" style={{ height: 180, borderRadius: 12 }} />
           )}
-          {pagoActivo && (
+          {tot?.adelanto && !porTransferencia && (
+            <fieldset className="com-adelanto">
+              <legend>¿Cómo quieres pagar?</legend>
+              {oferta ? (
+                <>
+                  <label className={`com-opcion${pagoModo === 'COMPLETO' ? ' activa' : ''}`}>
+                    <input type="radio" name="pago-modo" checked={pagoModo === 'COMPLETO'} onChange={() => setPagoModo('COMPLETO')} />
+                    <span>
+                      <strong>Pagar todo ahora</strong>
+                      <small>{soles(totalPagar)}</small>
+                    </span>
+                  </label>
+                  <label className={`com-opcion${pagoModo === 'ADELANTO' ? ' activa' : ''}`}>
+                    <input type="radio" name="pago-modo" checked={pagoModo === 'ADELANTO'} onChange={() => setPagoModo('ADELANTO')} />
+                    <span>
+                      <strong>
+                        Pagar un adelanto de {soles(oferta.monto)} ({oferta.porcentaje} %)
+                      </strong>
+                      <small>
+                        El resto, {soles(oferta.saldo)}, lo pagas al recoger. Tienes {oferta.dias} {oferta.dias === 1 ? 'día' : 'días'} para recogerlo.
+                      </small>
+                    </span>
+                  </label>
+                  {conAdelanto && (
+                    <p className="com-chico com-condiciones" role="note">
+                      <Icono nombre="info" tam={16} /> <span>{oferta.condiciones}</span>
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="com-chico">{tot.adelanto.motivo}</p>
+              )}
+            </fieldset>
+          )}
+          {(pagoActivo || porTransferencia) && (
             <>
               {mensajePago && (
                 <p className="alerta error" role="alert">
@@ -719,13 +920,19 @@ export default function CompraVista() {
                 disabled={ocupado || !cot?.puede_continuar || !tot || !correoOk || cargandoCot}
               >
                 <Icono nombre="candado" tam={18} />{' '}
-                {fase === 'creando' ? 'Preparando tu pedido…' : fase === 'procesando' ? 'Procesando tu pago…' : `Pagar ${soles(totalPagar) ?? ''}`}
+                {fase === 'creando'
+                  ? 'Preparando tu pedido…'
+                  : fase === 'procesando'
+                    ? 'Procesando tu pago…'
+                    : porTransferencia
+                      ? `Hacer mi pedido y pagar ${soles(aCobrarAhora) ?? ''} por transferencia`
+                      : `${conAdelanto ? 'Pagar adelanto' : 'Pagar'} ${soles(aCobrarAhora) ?? ''}`}
               </button>
               {!correoOk && <p className="com-chico com-centrado">Confirma tu correo para poder pagar.</p>}
               {correoOk && cot && !cot.puede_continuar && <p className="com-chico com-centrado">{cot.problemas > 0 ? 'Revisa los avisos de tu carrito.' : (entrega?.motivo ?? 'Elige cómo quieres recibir tu pedido.')}</p>}
             </>
           )}
-          {whatsapp && !pagoActivo && (
+          {whatsapp && !pagoActivo && !porTransferencia && (
             <a className="boton whatsapp grande" href={whatsapp} target="_blank" rel="noopener noreferrer">
               <Icono nombre="chat" tam={20} /> Enviar mi pedido por WhatsApp
             </a>

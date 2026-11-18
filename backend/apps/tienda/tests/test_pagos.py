@@ -120,7 +120,10 @@ class TestActivar:
 
     def test_activa_y_lo_publico_solo_lleva_la_llave_publica(self, pagos):
         c = admin_pagos()
-        assert APIClient().get(PUBLICA).json() == {"activo": False}
+        assert APIClient().get(PUBLICA).json() == {
+            "activo": False,
+            "transferencia": {"activa": False},
+        }
         configurar(c)
         r = c.patch(ADMIN, {"culqi_activo": True, "empresa_cobra": pagos.e.e1.pk}, format="json")
         assert r.status_code == 200 and r.json()["faltan_para_activar"] == []
@@ -135,6 +138,7 @@ class TestActivar:
             "llave_publica": PK,
             "tarjeta": True,
             "yape": True,
+            "transferencia": {"activa": False},
         }
         assert SK not in publico.content.decode()
 

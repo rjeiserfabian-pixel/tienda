@@ -3,7 +3,10 @@
 /** Cómo se ve cada estado del pedido (texto y color de la píldora). */
 export const ESTADOS_PEDIDO = {
   PENDIENTE_PAGO: { texto: 'Sin pagar', tono: 'gris' },
+  POR_VERIFICAR: { texto: 'Transferencia: falta verificar', tono: 'ambar' },
   PAGADO: { texto: 'Pagado', tono: 'azul' },
+  ADELANTO_PAGADO: { texto: 'Adelanto pagado: falta el saldo', tono: 'ambar' },
+  NO_RECOGIDO: { texto: 'No lo recogió a tiempo', tono: 'gris' },
   EN_PREPARACION: { texto: 'En preparación', tono: 'ambar' },
   LISTO_PARA_RECOJO: { texto: 'Listo para recoger', tono: 'cian' },
   ENVIADO: { texto: 'Enviado', tono: 'morado' },
@@ -19,16 +22,18 @@ export const ESTADOS_PEDIDO = {
 
 /** Pestañas de la lista: el valor es el «grupo» que entiende el servidor ('' = todos). */
 export const PESTANAS_PEDIDOS = [
+  { valor: 'por_verificar', texto: 'Por verificar' },
   { valor: 'por_atender', texto: 'Por atender' },
   { valor: 'listos', texto: 'Listos y enviados' },
   { valor: 'entregados', texto: 'Entregados' },
   { valor: 'reembolsados', texto: 'Reembolsados' },
+  { valor: 'no_recogidos', texto: 'No recogidos' },
   { valor: 'sin_pagar', texto: 'Sin pagar' },
   { valor: '', texto: 'Todos' },
 ]
 
 export const MODALIDADES_PEDIDO = { ENVIO: 'Envío a domicilio', RECOJO: 'Recojo en tienda' }
-export const MEDIOS_PAGO = { tarjeta: 'Tarjeta', yape: 'Yape' }
+export const MEDIOS_PAGO = { tarjeta: 'Tarjeta', yape: 'Yape', TRANSFERENCIA: 'Transferencia o depósito' }
 export const TIPOS_COMPROBANTE = { '03': 'Boleta', '01': 'Factura' }
 
 /** Qué significa y qué hacer en los pedidos que requieren atención. */

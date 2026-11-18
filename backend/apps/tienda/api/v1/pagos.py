@@ -5,6 +5,7 @@ ni en la auditoría. De ella solo se muestra que existe y sus últimos 4 caracte
 """
 
 import logging
+from decimal import Decimal
 
 from django.db import transaction
 from drf_spectacular.utils import extend_schema
@@ -17,7 +18,7 @@ from apps.auditoria.servicios import registrar
 from apps.core.throttles import ApiAutenticadaThrottle
 from apps.organizacion.models import Empresa
 from apps.seguridad.permissions import PermisoRBAC
-from apps.tienda import catalogo, culqi
+from apps.tienda import catalogo, culqi, transferencias
 from apps.tienda.models import ConfiguracionPago
 
 from .publica import _Publica
@@ -63,12 +64,39 @@ def _salida(config: ConfiguracionPago) -> dict:
         "acepta_tarjeta": config.acepta_tarjeta,
         "acepta_yape": config.acepta_yape,
         "empresa_cobra": config.empresa_cobra_id,
+        "adelanto": {
+            "activo": config.adelanto_activo,
+            "porcentaje": format(config.adelanto_pct, "f"),
+            "minimo": format(config.adelanto_minimo, "f"),
+            "dias": config.adelanto_dias,
+            "si_no_recoge": config.adelanto_si_no_recoge,
+            "penalidad_pct": format(config.adelanto_penalidad_pct, "f"),
+            "comision_pct": format(config.comision_pasarela_pct, "f"),
+            "comision_fija": format(config.comision_pasarela_fija, "f"),
+        },
+        "transferencia": {
+            "activa": config.transferencia_activa,
+            "horas": config.transferencia_horas,
+            "instrucciones": config.transferencia_instrucciones,
+            "cuentas": sorted(transferencias.ids_de_cuentas(config)),
+        },
         "faltan_para_activar": _problemas_para_activar(config),
         "opciones": {
+            "cuentas": [
+                {
+                    "id": c.pk,
+                    "nombre": c.nombre,
+                    "banco": c.banco,
+                    "numero": c.numero_cuenta,
+                    "cci": c.cci,
+                    "empresa": c.empresa.razon_social,
+                }
+                for c in transferencias.cuentas_posibles(config.organizacion_id)
+            ],
             "empresas": [
                 {"id": e.pk, "razon_social": e.razon_social, "ruc": e.ruc}
                 for e in _empresas(config.organizacion_id).order_by("razon_social")
-            ]
+            ],
         },
     }
 
@@ -85,6 +113,52 @@ class PagosEntrada(serializers.Serializer):
     acepta_tarjeta = serializers.BooleanField(required=False)
     acepta_yape = serializers.BooleanField(required=False)
     empresa_cobra = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    # Transferencia o depósito con comprobante
+    transferencia_activa = serializers.BooleanField(required=False)
+    transferencia_horas = serializers.IntegerField(min_value=1, max_value=168, required=False)
+    transferencia_instrucciones = serializers.CharField(
+        max_length=600, required=False, allow_blank=True
+    )
+    cuentas_transferencia = serializers.ListField(
+        child=serializers.IntegerField(min_value=1), required=False, max_length=20
+    )
+    # Pago con adelanto (solo para pedidos que se recogen en tienda)
+    adelanto_activo = serializers.BooleanField(required=False)
+    adelanto_pct = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("1"),
+        max_value=Decimal("90"),
+        required=False,
+    )
+    adelanto_minimo = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=Decimal("0"), required=False
+    )
+    adelanto_dias = serializers.IntegerField(min_value=1, max_value=60, required=False)
+    adelanto_si_no_recoge = serializers.ChoiceField(
+        choices=ConfiguracionPago.SiNoRecoge.choices, required=False
+    )
+    adelanto_penalidad_pct = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal("100"),
+        required=False,
+    )
+    comision_pasarela_pct = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal("30"),
+        required=False,
+    )
+    comision_pasarela_fija = serializers.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        min_value=Decimal("0"),
+        max_value=Decimal("50"),
+        required=False,
+    )
 
 
 class _Admin(APIView):
@@ -102,6 +176,39 @@ class _Admin(APIView):
 
 
 class PagosView(_Admin):
+    @staticmethod
+    def _transferencia(config, datos, cambios) -> None:
+        """Guarda los datos de la transferencia; para activarla hace falta al menos una cuenta."""
+        for campo in ("transferencia_horas", "transferencia_instrucciones"):
+            if campo in datos:
+                valor = datos[campo]
+                if isinstance(valor, str):
+                    valor = " ".join(valor.split())
+                setattr(config, campo, valor)
+                cambios[campo] = valor
+        if "cuentas_transferencia" in datos:
+            ids = set(datos["cuentas_transferencia"])
+            validas = {
+                c.pk for c in transferencias.cuentas_posibles(config.organizacion_id) if c.pk in ids
+            }
+            if validas != ids:
+                raise ValidationError(
+                    {"cuentas_transferencia": "Elige solo cuentas de banco o billetera en soles."}
+                )
+            config.pendientes_cuentas = validas
+            cambios["cuentas_transferencia"] = sorted(validas)
+        if "transferencia_activa" in datos:
+            config.transferencia_activa = datos["transferencia_activa"]
+            cambios["transferencia_activa"] = datos["transferencia_activa"]
+        if config.transferencia_activa:
+            elegidas = getattr(config, "pendientes_cuentas", None)
+            if elegidas is None:
+                elegidas = transferencias.ids_de_cuentas(config)
+            if not elegidas:
+                raise ValidationError(
+                    {"transferencia_activa": "Elige al menos una cuenta para recibir pagos."}
+                )
+
     @extend_schema(tags=TAG, responses={200: dict})
     def get(self, request):
         return Response(_salida(_config_de(request.user.organizacion_id)))
@@ -115,6 +222,19 @@ class PagosView(_Admin):
         config = _config_de(request.user.organizacion_id)
         cambios: dict = {}
 
+        for campo in (
+            "adelanto_activo",
+            "adelanto_pct",
+            "adelanto_minimo",
+            "adelanto_dias",
+            "adelanto_si_no_recoge",
+            "adelanto_penalidad_pct",
+            "comision_pasarela_pct",
+            "comision_pasarela_fija",
+        ):
+            if campo in datos:
+                setattr(config, campo, datos[campo])
+                cambios[campo] = str(datos[campo])
         for campo in ("culqi_modo", "acepta_tarjeta", "acepta_yape"):
             if campo in datos:
                 setattr(config, campo, datos[campo])
@@ -141,6 +261,8 @@ class PagosView(_Admin):
             config.empresa_cobra_id = empresa_id
             cambios["empresa_cobra"] = empresa_id
 
+        self._transferencia(config, datos, cambios)
+
         mensaje = culqi.validar_llaves(
             config.culqi_modo, config.culqi_llave_publica, config.culqi_llave_secreta
         )
@@ -161,6 +283,8 @@ class PagosView(_Admin):
             cambios["culqi_activo"] = False
 
         config.save()
+        if getattr(config, "pendientes_cuentas", None) is not None:
+            config.cuentas_transferencia.set(config.pendientes_cuentas)
         if cambios:
             registrar(
                 "tienda.pagos_configurados",
@@ -205,8 +329,9 @@ class PagosPublicaView(_Publica):
                 .filter(organizacion_id=ctx.organizacion_id)
                 .first()
             )
+            transferencia = transferencias.info_publica(ctx.organizacion_id)
             if config is None or not config.culqi_activo or _problemas_para_activar(config):
-                return {"activo": False}
+                return {"activo": False, "transferencia": transferencia}
             return {
                 "activo": True,
                 "proveedor": "culqi",
@@ -214,6 +339,7 @@ class PagosPublicaView(_Publica):
                 "llave_publica": config.culqi_llave_publica,
                 "tarjeta": config.acepta_tarjeta,
                 "yape": config.acepta_yape,
+                "transferencia": transferencia,
             }
 
         return self.responder(request, construir)

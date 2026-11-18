@@ -1,0 +1,66 @@
+/* Pantalla «Reseñas» de la tienda */
+.resenas-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.resenas-lista {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resenas-lista > li {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie, transparent);
+}
+
+.resenas-lista > li.oculta {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.resena-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.resena-estrellas {
+  color: #f5a623;
+  letter-spacing: 1px;
+}
+
+.resena-estrellas i {
+  color: var(--borde);
+  font-style: normal;
+}
+
+.resena-titulo {
+  margin: 0;
+  font-weight: 600;
+}
+
+.resena-texto {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.resena-respuesta {
+  padding: 8px 12px;
+  border-left: 3px solid var(--primario, #2563eb);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--primario, #2563eb) 6%, transparent);
+}
+
+.resena-respuesta p {
+  margin: 4px 0 0;
+}

@@ -2,9 +2,11 @@
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from apps.tienda import carrito, pedidos
+from apps.tienda import carrito, cupones, garantias_cliente, pedidos, transferencias
+from apps.tienda.exceptions import CuponInvalido
 from apps.tienda.pedidos import DatosComprobante
 
 from .compra import CarritoEntrada, _Compra
@@ -45,6 +47,19 @@ class PedidoEntrada(CarritoEntrada):
     punto = serializers.IntegerField(min_value=1, required=False)
     comprobante = ComprobanteEntrada(required=False)
     clave_idempotencia = serializers.UUIDField()
+    cupon = serializers.CharField(max_length=40, required=False, allow_blank=True)
+    pago = serializers.ChoiceField(choices=["COMPLETO", "ADELANTO"], required=False)
+    metodo = serializers.ChoiceField(choices=["CULQI", "TRANSFERENCIA"], required=False)
+    cuenta_transferencia = serializers.IntegerField(min_value=1, required=False)
+
+
+class GarantiasView(_Compra):
+    """«Mis garantías»: la garantía de cada producto que el cliente ya recibió o va a recibir."""
+
+    @extend_schema(tags=TAG, responses={200: dict})
+    def get(self, request):
+        cuenta, _ = self.sesion(request)
+        return Response({"results": garantias_cliente.de_cuenta(cuenta)})
 
 
 class PedidosView(_Compra):
@@ -74,16 +89,27 @@ class PedidosView(_Compra):
         entrada = PedidoEntrada(data=request.data)
         entrada.is_valid(raise_exception=True)
         datos = entrada.validated_data
-        pedido, creado = pedidos.crear_pedido(
-            cuenta,
-            self.contexto(),
-            carrito.normalizar(datos["lineas"]),
-            modalidad=datos["modalidad"],
-            direccion_id=datos.get("direccion"),
-            punto_id=datos.get("punto"),
-            comprobante=datos_de(datos.get("comprobante", {})),
-            clave=datos["clave_idempotencia"],
-        )
+        codigo = (datos.get("cupon") or "").strip()
+        if codigo:
+            cupones.exigir_sin_bloqueo(cuenta.pk)  # demasiados intentos fallidos: 429
+        try:
+            pedido, creado = pedidos.crear_pedido(
+                cuenta,
+                self.contexto(),
+                carrito.normalizar(datos["lineas"]),
+                modalidad=datos["modalidad"],
+                direccion_id=datos.get("direccion"),
+                punto_id=datos.get("punto"),
+                comprobante=datos_de(datos.get("comprobante", {})),
+                clave=datos["clave_idempotencia"],
+                cupon=codigo,
+                pago=datos.get("pago", "COMPLETO"),
+                metodo=datos.get("metodo", "CULQI"),
+                cuenta_transferencia_id=datos.get("cuenta_transferencia"),
+            )
+        except CuponInvalido:
+            cupones.anotar_fallo(cuenta.pk)
+            raise
         return Response(pedidos.pedido_salida(pedido), status=201 if creado else 200)
 
 
@@ -92,6 +118,26 @@ class PedidoView(_Compra):
     def get(self, request, numero: str):
         cuenta, _ = self.sesion(request)
         return Response(pedidos.pedido_salida(pedidos.pedido_de(cuenta, numero)))
+
+
+class VoucherEntrada(serializers.Serializer):
+    imagen = serializers.ImageField(allow_empty_file=False)
+    operacion = serializers.CharField(max_length=40, required=False, allow_blank=True)
+
+
+class VoucherView(_Compra):
+    """El cliente sube la foto de su comprobante de transferencia."""
+
+    parser_classes = [MultiPartParser, FormParser]
+
+    @extend_schema(tags=TAG, request=VoucherEntrada, responses={200: dict})
+    def post(self, request, numero: str):
+        cuenta, _ = self.sesion(request)
+        entrada = VoucherEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        d = entrada.validated_data
+        pedido = transferencias.subir_voucher(cuenta, numero, d["imagen"], d.get("operacion", ""))
+        return Response(pedidos.pedido_salida(pedido))
 
 
 class CancelarPedidoView(_Compra):

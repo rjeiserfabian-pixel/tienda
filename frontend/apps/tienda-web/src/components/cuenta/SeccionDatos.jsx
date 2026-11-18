@@ -11,6 +11,7 @@ export default function SeccionDatos() {
     apellidos: perfil.apellidos,
     celular: perfil.celular ?? '',
     acepta_ofertas: perfil.acepta_ofertas,
+    acepta_whatsapp: Boolean(perfil.acepta_whatsapp),
   })
   const [error, setError] = useState(null)
   const [enviando, setEnviando] = useState(false)
@@ -85,6 +86,17 @@ export default function SeccionDatos() {
             }}
           />
           <span>Quiero recibir ofertas y novedades por correo.</span>
+        </label>
+        <label className="campo-check">
+          <input
+            type="checkbox"
+            checked={datos.acepta_whatsapp}
+            onChange={(e) => {
+              setGuardado(false)
+              setDatos((d) => ({ ...d, acepta_whatsapp: e.target.checked }))
+            }}
+          />
+          <span>Quiero recibir avisos de mis pedidos por WhatsApp, al celular de arriba.</span>
         </label>
         <div className="form-acciones">
           <button type="submit" className="boton" disabled={enviando}>

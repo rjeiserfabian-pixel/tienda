@@ -2,13 +2,17 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import AccionesDeCompra from '@/components/AccionesDeCompra'
 import BotonComparar from '@/components/BotonComparar'
+import BotonFavorito from '@/components/BotonFavorito'
 import CuentaRegresiva from '@/components/CuentaRegresiva'
+import Estrellas from '@/components/Estrellas'
 import Galeria from '@/components/Galeria'
 import Icono from '@/components/Icono'
 import JsonLd from '@/components/JsonLd'
+import MedirVista from '@/components/MedirVista'
 import Migas from '@/components/Migas'
+import Resenas from '@/components/Resenas'
 import SeccionProductos from '@/components/SeccionProductos'
-import { consultarOpcional, obtenerConfiguracion, obtenerProducto } from '@/lib/api'
+import { consultarOpcional, obtenerConfiguracion, obtenerProducto, obtenerResenas } from '@/lib/api'
 import { soles, textoDisponibilidad, urlAbsoluta } from '@/lib/format'
 import '../../ofertas.css'
 import '../../producto.css'
@@ -52,6 +56,10 @@ export default async function PaginaProducto({ params }) {
   const p = await consultarOpcional(obtenerProducto, slug)
   const config = await obtenerConfiguracion().catch(() => null)
   if (!p) notFound()
+  // Las opiniones nunca impiden ver el producto: si fallan, la página sale sin ellas.
+  const opiniones = await obtenerResenas(slug).catch(() => null)
+  const resumen = opiniones?.resumen
+  const hayOpiniones = Boolean(resumen && resumen.total > 0)
 
   const precio = soles(p.precio_mostrar)
   const agotado = p.disponibilidad === 'agotado'
@@ -74,6 +82,20 @@ export default async function PaginaProducto({ params }) {
     ...(p.marca ? { brand: { '@type': 'Brand', name: p.marca.nombre } } : {}),
     ...(p.fotos.length ? { image: p.fotos.map((f) => urlAbsoluta(f.grande)) } : {}),
     ...(textoDescripcion.length ? { description: textoDescripcion.join(' ').slice(0, 500) } : {}),
+    // Solo opiniones reales de compradores (nunca inventadas): Google las muestra como estrellas.
+    ...(hayOpiniones
+      ? {
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: resumen.promedio, reviewCount: resumen.total, bestRating: 5, worstRating: 1 },
+          review: opiniones.results.slice(0, 5).map((x) => ({
+            '@type': 'Review',
+            author: { '@type': 'Person', name: x.autor },
+            datePublished: x.fecha.slice(0, 10),
+            reviewRating: { '@type': 'Rating', ratingValue: x.estrellas, bestRating: 5, worstRating: 1 },
+            ...(x.titulo ? { name: x.titulo } : {}),
+            ...(x.comentario ? { reviewBody: x.comentario } : {}),
+          })),
+        }
+      : {}),
     ...(p.consultar_precio
       ? {}
       : {
@@ -93,6 +115,13 @@ export default async function PaginaProducto({ params }) {
     <main id="contenido" className="contenedor pagina prod-pagina">
       <Migas items={migas} />
       <JsonLd datos={datosProducto} />
+      {!p.consultar_precio && (
+        <MedirVista
+          evento="view_item"
+          clave={`ver-${p.id}`}
+          datos={{ currency: 'PEN', value: Number(p.precio_mostrar), items: [{ item_id: p.codigo, item_name: p.nombre, price: Number(p.precio_mostrar), quantity: 1 }] }}
+        />
+      )}
 
       <div className="prod-principal">
         <Galeria fotos={p.fotos} nombre={p.nombre} />
@@ -108,6 +137,14 @@ export default async function PaginaProducto({ params }) {
             </Link>
           )}
           <h1 className="prod-titulo">{p.nombre}</h1>
+          {hayOpiniones && (
+            <a href="#resenas" className="prod-valoracion">
+              <Estrellas valor={resumen.promedio} tam={18} />
+              <span>
+                {resumen.promedio.toLocaleString('es-PE', { minimumFractionDigits: 1 })} ({resumen.total} {resumen.total === 1 ? 'opinión' : 'opiniones'})
+              </span>
+            </a>
+          )}
           <p className="prod-codigos">
             <span>
               Código <b>{p.codigo}</b>
@@ -162,6 +199,7 @@ export default async function PaginaProducto({ params }) {
               variante="ficha"
               producto={{ id: p.id, nombre: p.nombre, foto: p.fotos[0]?.mini ?? null, categoria: p.categoria }}
             />
+            <BotonFavorito variante="ficha" producto={{ id: p.id, nombre: p.nombre }} />
           </div>
 
           <ul className="prod-garantias">
@@ -181,6 +219,7 @@ export default async function PaginaProducto({ params }) {
         {textoDescripcion.length > 0 && <a href="#descripcion">Descripción</a>}
         {p.especificaciones.length > 0 && <a href="#especificaciones">Especificaciones</a>}
         <a href="#entrega">Garantía y entrega</a>
+        <a href="#resenas">Opiniones</a>
       </nav>
 
       {textoDescripcion.length > 0 && (
@@ -259,6 +298,8 @@ export default async function PaginaProducto({ params }) {
           )}
         </ul>
       </section>
+
+      {opiniones && <Resenas slug={p.slug} inicial={opiniones} />}
 
       {p.relacionados.length > 0 && (
         <div className="prod-relacionados">

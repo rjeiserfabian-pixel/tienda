@@ -227,3 +227,41 @@ class ConfiguracionEmpresa(EmpresaScopedModel):
 
     def __str__(self) -> str:
         return f"Configuración de {self.empresa_id}"
+
+
+class ConfiguracionWhatsApp(OrganizacionScopedModel):
+    """Cuenta de WhatsApp Business (API de Meta) de la organización, compartida por la tienda y el
+    servicio técnico. La pone el negocio desde el panel.
+
+    El token se guarda cifrado y NUNCA se devuelve. Si no existe esta fila, los avisos siguen
+    usando lo que diga el servidor (variables de entorno): así nada cambia hasta que el negocio
+    guarde su configuración aquí.
+    """
+
+    class Modo(models.TextChoices):
+        APAGADO = "APAGADO", "Apagado (no se envía nada por WhatsApp)"
+        PRUEBA = "PRUEBA", "Prueba (solo se registra, no se envía)"
+        ACTIVO = "ACTIVO", "Activo (se envía de verdad)"
+
+    modo = models.CharField(max_length=10, choices=Modo.choices, default=Modo.APAGADO)
+    numero = models.CharField("número de WhatsApp Business", max_length=20, blank=True)
+    telefono_id = models.CharField("ID del número (Meta)", max_length=40, blank=True)
+    token = CampoCifrado(blank=True)
+    version_api = models.CharField(max_length=10, default="v21.0")
+    idioma = models.CharField(max_length=10, default="es")
+    # Nombre de la plantilla aprobada por Meta para cada aviso: {"PEDIDO_PAGADO": "pedido_pagado"}
+    plantillas = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = "configuración de WhatsApp"
+        verbose_name_plural = "configuraciones de WhatsApp"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organizacion"],
+                condition=Q(eliminado_en__isnull=True),
+                name="uq_configwhatsapp_organizacion",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"WhatsApp de la organización {self.organizacion_id}"

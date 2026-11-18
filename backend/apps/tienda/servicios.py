@@ -13,6 +13,7 @@ from apps.auditoria.servicios import registrar
 from apps.organizacion.models import Empresa
 from apps.organizacion.services import logo as servicio_logo
 
+from . import paginas
 from .models import ConfiguracionTienda
 
 logger = logging.getLogger(__name__)
@@ -186,6 +187,14 @@ def datos_publicos(config: ConfiguracionTienda) -> dict:
         },
         "garantia_texto": _o_none(config.garantia_texto),
         "entrega_texto": _o_none(config.entrega_texto),
+        # Páginas de texto publicadas por el negocio (términos, privacidad…).
+        "paginas": paginas.publicadas(config.organizacion_id),
+        "seo": {
+            "titulo_inicio": _o_none(config.seo_titulo_inicio),
+            "google_verificacion": _o_none(config.google_verificacion),
+        },
+        # Códigos de medición: el sitio solo los carga si el visitante acepta las cookies.
+        "medicion": {"ga4": _o_none(config.ga4_id), "pixel": _o_none(config.meta_pixel_id)},
         "legal": {
             "razon_social": getattr(empresa, "razon_social", None),
             "nombre_comercial": _o_none(getattr(empresa, "nombre_comercial", "")),

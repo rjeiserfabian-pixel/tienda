@@ -231,6 +231,9 @@ def registrar_abonos(
             },
         )
         creados.append(nuevo)
+    from apps.comisiones import calculo as comisiones  # import tardío: evita ciclos
+
+    comisiones.recalcular_seguro(actual)  # lo cobrado sube: el vendedor gana su parte
     return creados
 
 
@@ -263,6 +266,9 @@ def anular_abono(abono: AbonoVenta, *, motivo: str) -> AbonoVenta:
         )
     cuotas = {c.pk: c for c in _cuotas_bloqueadas(comprobante)}
     _revertir(actual, cuotas, f"Abono anulado: {motivo}")
+    from apps.comisiones import calculo as comisiones  # import tardío: evita ciclos
+
+    comisiones.recalcular_seguro(comprobante)  # lo cobrado baja: se ajusta la comisión
     registrar(
         "ventas.abono_anulado",
         recurso_tipo="comprobante_venta",

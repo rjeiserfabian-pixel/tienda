@@ -7,10 +7,11 @@ datos del cliente.
 """
 
 import logging
-import re
 
 from django.conf import settings
 from django.db import transaction
+
+from apps.organizacion.whatsapp import normalizar_telefono  # noqa: F401  (se usa aquí y en las pruebas)
 
 from . import proveedores
 from .models import (
@@ -37,22 +38,6 @@ CAMPO_DE_CONFIGURACION = {
     EventoAviso.LISTO: "aviso_listo",
     EventoAviso.ENTREGADO: "aviso_entregado",
 }
-
-_SOLO_DIGITOS = re.compile(r"\D")
-
-
-def normalizar_telefono(texto: str) -> str | None:
-    """El teléfono como lo pide WhatsApp: solo dígitos y con código de país (Perú por defecto)."""
-    digitos = _SOLO_DIGITOS.sub("", texto or "")
-    if digitos.startswith("00"):
-        digitos = digitos[2:]
-    if len(digitos) == 9 and digitos.startswith("9"):
-        return f"51{digitos}"  # un celular peruano sin el código
-    if len(digitos) == 11 and digitos.startswith("519"):
-        return digitos
-    if 10 <= len(digitos) <= 15 and not digitos.startswith("0"):
-        return digitos  # otro país, ya con su código
-    return None
 
 
 def url_publica(orden: OrdenServicio) -> str:
@@ -135,7 +120,7 @@ def avisar_por_estado(orden: OrdenServicio, estado: str) -> NotificacionServicio
     if NotificacionServicio.objects.sin_ambito().filter(orden=orden, evento=evento).exists():
         return None  # ya se le avisó esto: no se repite aunque la orden vuelva a pasar por ahí
     telefono = normalizar_telefono(orden.cliente.telefono)
-    proveedor = proveedores.obtener()
+    proveedor = proveedores.obtener(orden.empresa.organizacion_id)
     omitido = ""
     if telefono is None:
         omitido = "El cliente no tiene un teléfono válido."

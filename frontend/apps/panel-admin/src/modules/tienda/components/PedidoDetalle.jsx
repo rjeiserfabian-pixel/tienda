@@ -7,7 +7,9 @@ import ConfirmarModal from '../../../shared/components/ConfirmarModal'
 import Modal from '../../../shared/components/Modal'
 import { useMutacion } from '../../../shared/hooks/useMutacion'
 import CambiarSerieModal from './CambiarSerieModal'
+import CobrarSaldoModal from './CobrarSaldoModal'
 import ReembolsoModal from './ReembolsoModal'
+import VerificarTransferencia from './VerificarTransferencia'
 import {
   AVISOS_ATENCION,
   ayudaSeguimiento,
@@ -19,6 +21,9 @@ import {
   textoAccion,
   TIPOS_COMPROBANTE,
 } from '../pedidos'
+
+// Color de cada estado de un aviso (la píldora usa los mismos tonos que los pedidos).
+const AVISO_TONO = { ENVIADO: 'verde', FALLIDO: 'rojo', OMITIDO: 'gris', PENDIENTE: 'ambar' }
 
 const Pildora = ({ estado }) => {
   const e = ESTADOS_PEDIDO[estado] ?? { texto: estado, tono: 'gris' }
@@ -53,6 +58,7 @@ export default function PedidoDetalle({ numero, onCerrar, claveLista }) {
   const [confirmando, setConfirmando] = useState(null) // estado al que se va a pasar
   const [cambiandoSerie, setCambiandoSerie] = useState(null) // línea cuya serie se cambia
   const [reembolsando, setReembolsando] = useState(false)
+  const [cobrandoSaldo, setCobrandoSaldo] = useState(false)
   const [error, setError] = useState('')
 
   const invalidar = [clave, claveLista, ['tienda', 'pedidos-resumen']]
@@ -142,6 +148,38 @@ export default function PedidoDetalle({ numero, onCerrar, claveLista }) {
             </p>
           )}
 
+          {p.pago?.metodo === 'TRANSFERENCIA' && ['PENDIENTE_PAGO', 'POR_VERIFICAR'].includes(p.estado) && (
+            <Can permiso="TIENDA.PEDIDOS.GESTIONAR" organizacion fallback={<VerificarTransferencia pedido={p} numero={numero} invalidar={invalidar} puedeGestionar={false} />}>
+              <VerificarTransferencia pedido={p} numero={numero} invalidar={invalidar} puedeGestionar />
+            </Can>
+          )}
+
+          {p.forma_pago?.modo === 'ADELANTO' && (
+            <section className="pedido-adelanto" aria-label="Pago con adelanto">
+              <h3>Pago con adelanto</h3>
+              <dl className="pedido-datos">
+                <Dato etiqueta="Total del pedido">{soles(p.importes.total)}</Dato>
+                <Dato etiqueta="Adelanto pagado">{soles(p.forma_pago.cobrado_ahora)}</Dato>
+                <Dato etiqueta="Saldo al recoger">{p.estado === 'ENTREGADO' ? 'Cobrado' : soles(p.forma_pago.saldo)}</Dato>
+                <Dato etiqueta="Puede recoger hasta">{p.estado === 'ENTREGADO' || p.estado === 'NO_RECOGIDO' ? '' : fechaHora(p.forma_pago.adelanto_vence_en)}</Dato>
+                {p.estado === 'NO_RECOGIDO' && (
+                  <>
+                    <Dato etiqueta="Se devolvió al cliente">{soles(p.forma_pago.devuelto)}</Dato>
+                    <Dato etiqueta="Se retuvo (penalidad o comisión)">{soles(p.forma_pago.retenido)}</Dato>
+                  </>
+                )}
+              </dl>
+              {p.forma_pago.condiciones && <p className="sub-texto">{p.forma_pago.condiciones}</p>}
+              <Can permiso="TIENDA.PEDIDOS.GESTIONAR" organizacion>
+                {p.acciones.cobrar_saldo && (
+                  <button type="button" className="primario" onClick={() => setCobrandoSaldo(true)}>
+                    Cobrar el saldo y entregar…
+                  </button>
+                )}
+              </Can>
+            </section>
+          )}
+
           <Can permiso="TIENDA.PEDIDOS.GESTIONAR" organizacion>
             {(siguientes.length > 0 || p.acciones.reintentar_comprobante) && (
               <section className="pedido-acciones" aria-label="Atender el pedido">
@@ -214,7 +252,13 @@ export default function PedidoDetalle({ numero, onCerrar, claveLista }) {
                   {p.cliente.correo} {!p.cliente.correo_verificado && <span className="sub-texto">(sin confirmar)</span>}
                 </Dato>
                 <Dato etiqueta="Celular">{p.cliente.celular}</Dato>
+                <Dato etiqueta="Avisos por WhatsApp">{p.cliente.acepta_whatsapp ? 'Sí, los aceptó' : 'No los pidió'}</Dato>
               </dl>
+              {p.whatsapp_manual && (
+                <a className="boton-cabecera pedido-wa" href={p.whatsapp_manual.url} target="_blank" rel="noopener noreferrer">
+                  Escribirle por WhatsApp
+                </a>
+              )}
               <h3>Comprobante</h3>
               <dl className="pedido-datos">
                 <Dato etiqueta="Tipo">{TIPOS_COMPROBANTE[p.comprobante.tipo] ?? p.comprobante.tipo}</Dato>
@@ -373,6 +417,27 @@ export default function PedidoDetalle({ numero, onCerrar, claveLista }) {
               )}
             </section>
 
+            <section aria-label="Avisos al cliente">
+              <h3>Avisos al cliente</h3>
+              {(p.avisos ?? []).length === 0 ? (
+                <p className="sub-texto">Todavía no se le ha avisado nada.</p>
+              ) : (
+                <ul className="pedido-lista-simple pedido-avisos">
+                  {p.avisos.map((a, n) => (
+                    <li key={`${a.evento}-${a.canal}-${n}`}>
+                      <span className="sub-texto">{fechaHora(a.fecha)} · </span>
+                      {a.nombre} · {a.canal_nombre}
+                      {a.destino && <span className="sub-texto"> ({a.destino})</span>} ·{' '}
+                      <span className="pildora" data-tono={AVISO_TONO[a.estado] ?? 'gris'}>
+                        {a.estado_nombre}
+                      </span>
+                      {a.detalle && <span className="sub-texto"> — {a.detalle}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
             <section aria-label="Historial">
               <h3>Historial</h3>
               {p.historial.length === 0 ? (
@@ -420,6 +485,7 @@ export default function PedidoDetalle({ numero, onCerrar, claveLista }) {
         </div>
       )}
 
+      {cobrandoSaldo && <CobrarSaldoModal numero={numero} invalidar={invalidar} onCerrar={() => setCobrandoSaldo(false)} />}
       {reembolsando && <ReembolsoModal numero={numero} lineas={p?.lineas ?? []} invalidar={invalidar} onCerrar={() => setReembolsando(false)} />}
 
       {cambiandoSerie && (

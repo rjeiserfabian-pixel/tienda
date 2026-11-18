@@ -19,9 +19,11 @@ _claves = itertools.count(1)
 
 
 def stock(tienda, empresa, producto) -> D:
-    fila = SaldoStock.objects.sin_ambito().filter(
-        empresa=empresa, almacen=tienda.almacen(empresa), producto=producto
-    ).first()
+    fila = (
+        SaldoStock.objects.sin_ambito()
+        .filter(empresa=empresa, almacen=tienda.almacen(empresa), producto=producto)
+        .first()
+    )
     return fila.cantidad if fila else D("0")
 
 
@@ -176,7 +178,9 @@ class TestApi:
 
     def test_sin_el_permiso_no_se_puede_crear(self, tienda, nuevo_usuario, mixto):
         _, de_b = mixto
-        nuevo_usuario(tienda.a.organizacion, "vendedora_x", [tienda.a, tienda.b], [("VENDEDOR", None)])
+        nuevo_usuario(
+            tienda.a.organizacion, "vendedora_x", [tienda.a, tienda.b], [("VENDEDOR", None)]
+        )
         r = cliente_de("vendedora_x").post(
             f"{BASE}/?empresa={tienda.a.pk}",
             {

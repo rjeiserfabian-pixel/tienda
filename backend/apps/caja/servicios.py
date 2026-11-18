@@ -413,6 +413,60 @@ def registrar_adelanto_de_servicio(
     )
 
 
+def registrar_adelanto_de_tienda(
+    *,
+    empresa: Empresa,
+    cuenta: CuentaFinanciera,
+    monto: Decimal,
+    fecha: date,
+    referencia: str,
+    glosa: str,
+    pedido_id: int,
+    medio_pago=None,
+) -> MovimientoCaja:
+    """Ingreso por el adelanto que un cliente pagó en la tienda virtual por un pedido a recoger."""
+    return registrar_movimiento(
+        empresa=empresa,
+        cuenta=cuenta,
+        tipo=TipoMovimiento.INGRESO,
+        monto=monto,
+        concepto=concepto_del_sistema(empresa, "ADELANTO_TIENDA"),
+        fecha=fecha,
+        glosa=glosa,
+        referencia=referencia,
+        origen_tipo=Origen.ADELANTO_TIENDA,
+        origen_id=pedido_id,
+        medio_pago=medio_pago,
+    )
+
+
+def registrar_devolucion_de_adelanto_de_tienda(
+    *,
+    empresa: Empresa,
+    cuenta: CuentaFinanciera,
+    monto: Decimal,
+    fecha: date,
+    referencia: str,
+    glosa: str,
+    pedido_id: int,
+    medio_pago=None,
+) -> MovimientoCaja:
+    """Egreso por lo que se devuelve del adelanto de un pedido de la tienda que no se recogió."""
+    return registrar_movimiento(
+        empresa=empresa,
+        cuenta=cuenta,
+        tipo=TipoMovimiento.EGRESO,
+        monto=monto,
+        concepto=concepto_del_sistema(empresa, "DEVOLUCION_ADELANTO_TIENDA"),
+        fecha=fecha,
+        glosa=glosa,
+        referencia=referencia,
+        origen_tipo=Origen.ADELANTO_TIENDA,
+        origen_id=pedido_id,
+        medio_pago=medio_pago,
+    )
+
+
 def registrar_adelanto_de_personal(
     *,
     empresa: Empresa,

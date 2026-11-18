@@ -85,6 +85,7 @@ def registrar(
     apellidos: str,
     celular: str = "",
     acepta_ofertas: bool = False,
+    acepta_whatsapp: bool = False,
     ip: str | None = None,
 ) -> None:
     """Crea la cuenta (o toma una sin confirmar) y encola el correo. Responde igual siempre."""
@@ -108,6 +109,7 @@ def registrar(
                 celular=celular,
                 acepta_terminos_en=ahora,
                 acepta_ofertas=acepta_ofertas,
+                acepta_whatsapp=acepta_whatsapp,
             )
             tipo = "VERIFICAR"
         elif not existente.verificada:
@@ -117,6 +119,7 @@ def registrar(
             existente.nombres, existente.apellidos, existente.celular = nombres, apellidos, celular
             existente.acepta_terminos_en = ahora
             existente.acepta_ofertas = acepta_ofertas
+            existente.acepta_whatsapp = acepta_whatsapp
             existente.save()
             SesionCuenta.objects.filter(cuenta=existente).update(revocada=True)
             cuenta, tipo = existente, "VERIFICAR"

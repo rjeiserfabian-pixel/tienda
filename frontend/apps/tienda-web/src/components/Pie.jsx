@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { enlaceWhatsapp } from '@/lib/format'
+import BotonCookies from './BotonCookies'
 import Logo from './Logo'
 
 const REDES = [
@@ -21,10 +22,16 @@ export default function Pie({ menu, config }) {
   const categorias = menu.familias.flatMap((f) => f.categorias).slice(0, 6)
   const redes = REDES.filter(([clave]) => config?.redes?.[clave])
   const hayContacto = contacto.telefono || contacto.correo || contacto.direccion || contacto.horario
+  // Cada texto legal: el enlace externo si el negocio puso uno; si no, su página publicada aquí mismo.
+  const paginas = Object.fromEntries((config?.paginas ?? []).map((p) => [p.slug, p.titulo]))
+  const interno = (slug) => (paginas[slug] ? `/legal/${slug}` : null)
   const enlacesLegales = [
-    [legal.terminos_url, 'Términos y condiciones'],
-    [legal.privacidad_url, 'Política de privacidad'],
-    [legal.libro_reclamaciones_url, 'Libro de reclamaciones'],
+    [legal.terminos_url || interno('terminos'), 'Términos y condiciones'],
+    [legal.privacidad_url || interno('privacidad'), 'Política de privacidad'],
+    [interno('cambios-y-devoluciones'), 'Cambios y devoluciones'],
+    [interno('envios'), 'Política de envíos'],
+    [legal.libro_reclamaciones_url || '/libro-de-reclamaciones', 'Libro de reclamaciones'],
+    ['/garantia', 'Consulta tu garantía'],
   ].filter(([url]) => url)
   const razon = legal.nombre_comercial && legal.nombre_comercial !== legal.razon_social ? null : legal.razon_social
   return (
@@ -85,11 +92,20 @@ export default function Pie({ menu, config }) {
                   </a>
                 </li>
               )}
+              {(config?.medicion?.ga4 || config?.medicion?.pixel) && (
+                <li>
+                  <BotonCookies />
+                </li>
+              )}
               {enlacesLegales.map(([url, texto]) => (
                 <li key={texto}>
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    {texto}
-                  </a>
+                  {url.startsWith('/') ? (
+                    <Link href={url}>{texto}</Link>
+                  ) : (
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      {texto}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

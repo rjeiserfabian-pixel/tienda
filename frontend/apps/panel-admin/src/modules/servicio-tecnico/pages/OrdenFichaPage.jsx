@@ -4,6 +4,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { api, mensajeDeError } from '../../../core/api/client'
 import BotonVolver from '../../../shared/components/BotonVolver'
 import CabeceraListado from '../../../shared/components/CabeceraListado'
+import HistorialRecurso from '../../../shared/components/HistorialRecurso'
 import Can from '../../../shared/components/Can'
 import EstadoConsulta from '../../../shared/components/EstadoConsulta'
 import { Icono } from '../../../shared/components/IconosPanel'
@@ -116,6 +117,7 @@ export default function OrdenFichaPage() {
                   Urgente
                 </span>
               )}
+              <HistorialRecurso tipo="orden_servicio" id={o.id} titulo={`Orden ${o.codigo}`} />
               <button type="button" className="primario boton-cabecera" onClick={imprimir}>
                 <Icono nombre="documento" tam={18} /> Imprimir
               </button>

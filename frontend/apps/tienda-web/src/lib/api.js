@@ -80,6 +80,7 @@ export const obtenerMenu = () => consultar('menu/', undefined, { segundos: 300 }
 export const obtenerInicio = () => consultar('inicio/')
 export const obtenerProductos = (params) => consultar('productos/', params)
 export const obtenerProducto = (slug) => consultar(`productos/${encodeURIComponent(slug)}/`)
+export const obtenerResenas = (slug) => consultar(`productos/${encodeURIComponent(slug)}/resenas/`)
 export const obtenerConfiguracion = () => consultar('configuracion/', undefined, { segundos: 120 })
 export const obtenerBanners = () => consultar('banners/', undefined, { segundos: 60 })
 export const obtenerMapaDelSitio = () => consultar('sitemap/', undefined, { segundos: 300 })

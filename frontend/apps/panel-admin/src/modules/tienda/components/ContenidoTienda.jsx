@@ -188,6 +188,34 @@ export default function ContenidoTienda({ datos, form, errores, cambiar, clave }
       </PanelTarjeta>
 
       <PanelTarjeta
+        id="config-posicionamiento"
+        icono="chart"
+        titulo="Posicionamiento y medición"
+        descripcion="Para aparecer mejor en Google y saber de dónde llegan tus clientes. Todo es opcional. La medición solo se activa si el visitante acepta las cookies."
+      >
+        <div className="maestro-campos">
+          <Texto
+            {...t}
+            nombre="seo_titulo_inicio"
+            etiqueta="Título de la página de inicio en Google"
+            ayuda="Lo que se ve como título azul en los resultados. Unos 60 caracteres. Vacío: nombre de la tienda y descripción."
+          />
+          <Texto
+            {...t}
+            nombre="google_verificacion"
+            etiqueta="Código de verificación de Google Search Console"
+            placeholder="Solo el código"
+            ayuda="Search Console › Configuración › Verificar propiedad › Etiqueta HTML: copia lo que va en content=«…»."
+          />
+          <Texto {...t} nombre="ga4_id" etiqueta="Google Analytics 4 (ID de medición)" placeholder="G-XXXXXXXXXX" ayuda="Mide visitas, productos vistos, carritos y compras." />
+          <Texto {...t} nombre="meta_pixel_id" etiqueta="Píxel de Meta (Facebook / Instagram)" placeholder="Solo números" ayuda="Para anuncios en Facebook e Instagram y medir sus resultados." />
+        </div>
+        <p className="celda-suave">
+          Para aparecer en Google Shopping, en Merchant Center agrega este feed de productos: <b>{'{dirección de tu tienda}'}/api/v1/tienda/feed/google.xml</b>
+        </p>
+      </PanelTarjeta>
+
+      <PanelTarjeta
         id="config-legales"
         icono="shield"
         titulo="Datos legales"

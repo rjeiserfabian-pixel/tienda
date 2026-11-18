@@ -535,6 +535,12 @@ def crear_nota_credito(
         )
         for orden, d in enumerate(calculo.lineas)
     ]
+    from apps.garantias.servicios import reducir_por_devolucion
+
+    for d in calculo.lineas:
+        reducir_por_devolucion(
+            d.linea, d.cantidad, tuple(d.series), f"Nota de crédito {nota.numero_completo}"
+        )
     if reingresa_stock:
         _reingresar_al_almacen(nota, comprobante, calculo, lineas_nota, fecha)
         # Lo devuelto que vino de la otra empresa vuelve a ella, al costo con que salió.
@@ -575,6 +581,9 @@ def crear_nota_credito(
             "reingresa_stock": reingresa_stock,
         },
     )
+    from apps.comisiones import calculo as comisiones  # import tardío: evita ciclos
+
+    comisiones.recalcular_seguro(comprobante)  # lo devuelto ya no paga comisión
     return nota
 
 

@@ -28,6 +28,11 @@ urlpatterns = [
     path("reportes/utilidad/", reportes.UtilidadReporteView.as_view(), name="reporte-utilidad"),
     path("comisiones/", reportes.ComisionesView.as_view(), name="comisiones"),
     path(
+        "comisiones/por-defecto/",
+        reportes.ComisionPorDefectoView.as_view(),
+        name="comision-por-defecto",
+    ),
+    path(
         "comisiones/<int:personal_id>/",
         reportes.ComisionDetalleView.as_view(),
         name="comision-detalle",

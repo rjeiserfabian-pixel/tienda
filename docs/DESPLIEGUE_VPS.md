@@ -103,10 +103,12 @@ AUDITORIA_RETENCION_DIAS=730                   # SESIONES_RETENCION_DIAS=90
 ```
 - **Recuperación de contraseña**: sin SMTP configurado no llega ningún correo. Probar con una cuenta real tras desplegar.
   El enlace va en el fragmento (`#token=`) para no quedar en registros del servidor; el token solo se guarda como huella.
-- **Auditoría**: tabla `auditoria_auditoriaevento`, solo se agrega. La aplicación impide editar/borrar, pero el refuerzo
-  definitivo es de base de datos: usar un rol de PostgreSQL para la app SIN `UPDATE`/`DELETE` sobre esa tabla y un rol
-  aparte (solo para la tarea de purga) con `DELETE`. Ejemplo:
-  `REVOKE UPDATE, DELETE ON auditoria_auditoriaevento FROM app_web;`
+- **Auditoría**: tabla `auditoria_auditoriaevento`, solo se agrega. La aplicación impide editar/borrar y, desde la
+  migración `auditoria 0002`, la propia base lo rechaza con un disparador (`auditoria_inmutable`): todo `UPDATE` y
+  `DELETE` falla, salvo la purga por retención, que avisa con `SET LOCAL app.auditoria_purga = 'on'` dentro de su
+  transacción. Un superusuario de la base aún podría quitar el disparador: por eso, además, conviene un rol de
+  PostgreSQL para la app SIN permiso de superusuario ni de dueño de la tabla, y un rol aparte (solo para la tarea de
+  purga) con `DELETE`. Ejemplo: `REVOKE UPDATE, DELETE ON auditoria_auditoriaevento FROM app_web;`
   Los eventos de intentos de acceso se guardan aunque la operación falle; el resto, solo si la operación se confirma.
 - **Segundo factor (TOTP)**: el secreto se cifra con `CIFRADO_CLAVES`; `rotar_clave_cifrado` lo re-cifra junto con
   las credenciales SUNAT (recorre todos los campos cifrados). Si se pierde el `.env` se pierden también los secretos TOTP

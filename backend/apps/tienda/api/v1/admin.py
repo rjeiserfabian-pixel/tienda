@@ -48,7 +48,8 @@ CAMPOS_CONTENIDO = [
     "mapa_url", "facebook", "instagram", "tiktok", "youtube", "avisos", "portada_etiqueta",
     "portada_titulo", "portada_subtitulo", "servicio_visible", "servicio_titulo", "servicio_texto",
     "servicio_puntos", "garantia_texto", "entrega_texto", "libro_reclamaciones_url",
-    "terminos_url", "privacidad_url",
+    "terminos_url", "privacidad_url", "seo_titulo_inicio", "google_verificacion", "ga4_id",
+    "meta_pixel_id",
 ]  # fmt: skip
 
 

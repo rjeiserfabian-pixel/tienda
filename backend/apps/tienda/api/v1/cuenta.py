@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 from apps.core.throttles import LoginThrottle, TiendaCuentaThrottle
 from apps.core.utils.red import ip_cliente
 from apps.mantenimiento.models import Ubigeo
-from apps.tienda import catalogo, cuentas
+from apps.tienda import carrito_abandonado, catalogo, cuentas
 from apps.tienda.exceptions import DatosInvalidos, SesionNoValida, SolicitudNoPermitida
 from apps.tienda.models import CuentaCliente, DireccionCuenta
 
@@ -100,6 +100,7 @@ def perfil_de(cuenta: CuentaCliente) -> dict:
         "celular": cuenta.celular,
         "correo_verificado": cuenta.verificada,
         "acepta_ofertas": cuenta.acepta_ofertas,
+        "acepta_whatsapp": cuenta.acepta_whatsapp,
     }
 
 
@@ -114,6 +115,7 @@ class RegistroEntrada(serializers.Serializer):
     celular = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
     acepta_terminos = serializers.BooleanField()
     acepta_ofertas = serializers.BooleanField(required=False, default=False)
+    acepta_whatsapp = serializers.BooleanField(required=False, default=False)
 
     def validate_celular(self, valor):
         return _celular(valor)
@@ -147,6 +149,7 @@ class RegistroView(_Base):
             apellidos=datos["apellidos"],
             celular=datos["celular"],
             acepta_ofertas=datos["acepta_ofertas"],
+            acepta_whatsapp=datos["acepta_whatsapp"],
             ip=ip_cliente(request),
         )
         return Response(RESPUESTA_GENERICA, status=202)
@@ -251,6 +254,7 @@ class PerfilEntrada(serializers.Serializer):
     apellidos = serializers.CharField(max_length=100, required=False)
     celular = serializers.CharField(max_length=20, required=False, allow_blank=True)
     acepta_ofertas = serializers.BooleanField(required=False)
+    acepta_whatsapp = serializers.BooleanField(required=False)
 
     def validate_celular(self, valor):
         return _celular(valor)
@@ -275,6 +279,23 @@ class PerfilView(_Base):
             setattr(cuenta, campo, valor)
         cuenta.save()
         return Response(perfil_de(cuenta))
+
+
+class BajaEntrada(serializers.Serializer):
+    token = serializers.CharField(max_length=300)
+
+
+class BajaPromocionesView(_Base):
+    """El enlace de «darme de baja» de los correos de promoción: un clic y no se le escribe más."""
+
+    throttle_classes = [LoginThrottle]
+
+    @extend_schema(tags=TAG, request=BajaEntrada, responses={200: dict})
+    def post(self, request):
+        entrada = BajaEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        carrito_abandonado.dar_de_baja(entrada.validated_data["token"])
+        return Response({"detalle": "Listo: ya no recibirás ofertas por correo."})
 
 
 class SesionView(_Base):

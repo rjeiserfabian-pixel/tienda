@@ -183,7 +183,16 @@ def guardado(cuenta: CuentaCliente) -> list[dict]:
 
 
 def guardar(cuenta: CuentaCliente, entradas: list[dict]) -> None:
+    fila = CarritoCuenta.objects.sin_ambito().filter(cuenta=cuenta).first()
+    if fila is not None and fila.lineas == entradas:
+        return  # nada cambió (el navegador vuelve a guardar al abrir la tienda): no se toca
     CarritoCuenta.objects.sin_ambito().update_or_create(
         cuenta=cuenta,
-        defaults={"organizacion_id": cuenta.organizacion_id, "lineas": entradas},
+        defaults={
+            "organizacion_id": cuenta.organizacion_id,
+            "lineas": entradas,
+            # Un carrito distinto es una compra distinta: los recordatorios vuelven a empezar.
+            "recordatorios_enviados": 0,
+            "ultimo_recordatorio_en": None,
+        },
     )

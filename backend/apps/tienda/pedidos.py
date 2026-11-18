@@ -12,6 +12,7 @@
   Aquí NO se crean comprobantes ni se descuenta el stock: eso ocurre al cobrar.
 """
 
+import dataclasses
 import logging
 from dataclasses import dataclass, field
 from datetime import timedelta
@@ -48,16 +49,29 @@ from apps.organizacion.models import Empresa
 from apps.ventas import servicios as ventas
 from apps.ventas.exceptions import VentaInvalida
 
-from . import carrito, catalogo, envios, reservas, series_pedido
+from . import (
+    adelantos,
+    carrito,
+    catalogo,
+    cupones,
+    envios,
+    garantias_cliente,
+    ofertas,
+    reservas,
+    series_pedido,
+    transferencias,
+)
 from .catalogo import Contexto
 from .exceptions import (
     CorreoSinConfirmar,
+    CuponInvalido,
     PedidoInvalido,
     PedidoNoCancelable,
     PedidoNoEncontrado,
 )
 from .models import (
     CuentaCliente,
+    Cupon,
     DireccionCuenta,
     IntentoPago,
     LineaPedido,
@@ -209,6 +223,9 @@ class Calculo:
     motivo_igv: str
     punto: PuntoRecojo | None = None
     avisos: list[str] = field(default_factory=list)
+    cupon: Cupon | None = None
+    descuento: Decimal = CERO  # lo que el cupón le ahorra al cliente (con IGV)
+    aviso_cupon: str = ""
 
 
 def _empresas_de(organizacion_id: int) -> list[Empresa]:
@@ -318,6 +335,8 @@ def _calcular(
     comprobante: DatosComprobante | None = None,
     exigir_documento: bool = True,
     bloquear: bool = False,
+    cupon_codigo: str = "",
+    cuenta: CuentaCliente | None = None,
 ) -> Calculo:
     if modalidad not in (ENVIO, RECOJO):
         raise PedidoInvalido("Elige envío a domicilio o recojo en tienda.")
@@ -397,58 +416,141 @@ def _calcular(
         zona=zona,
         estado=EstadoRegistro.ACTIVO,
     )
-    try:
-        with contexto_tenant(ctx.organizacion_id, empresas.keys(), None):
-            preparada = ventas.preparar_venta(
-                empresa=principal,
-                fecha=timezone.localdate(),
-                tipo_comprobante=comp.tipo,
-                lineas=entradas_venta,
-                cliente=cliente,
-                lista=lista,
-                puede_descontar=True,
-                puede_vender_stock_otra_empresa=True,
-                estricto=False,
-                revisar_series=False,
-            )
-    except VentaInvalida as error:
-        raise PedidoInvalido(error.mensaje) from None
-    if preparada.avisos:
-        raise PedidoInvalido(preparada.avisos[0])
 
-    lineas, por_empresa = [], []
-    exonera = False
-    for c in preparada.comprobantes:
-        t = c.totales
-        por_empresa.append(
-            {
-                "empresa": c.empresa.pk,
-                "razon_social": c.empresa.razon_social,
-                "base": format(t.op_gravada + t.op_exonerada + t.op_inafecta, "f"),
-                "igv": format(t.igv, "f"),
-                "total": format(t.total, "f"),
-            }
-        )
-        for ln, importes in zip(c.lineas, t.lineas, strict=True):
-            es_envio = (
-                producto_de_envio is not None and ln.entrada.producto.pk == producto_de_envio.pk
-            )
-            if not es_envio and ln.afectacion.grupo == EXONERADO:
-                exonera = True
-            lineas.append(
+    def _preparar(entradas_a_vender):
+        try:
+            with contexto_tenant(ctx.organizacion_id, empresas.keys(), None):
+                preparada_ = ventas.preparar_venta(
+                    empresa=principal,
+                    fecha=timezone.localdate(),
+                    tipo_comprobante=comp.tipo,
+                    lineas=entradas_a_vender,
+                    cliente=cliente,
+                    lista=lista,
+                    puede_descontar=True,
+                    puede_vender_stock_otra_empresa=True,
+                    estricto=False,
+                    revisar_series=False,
+                )
+        except VentaInvalida as error:
+            raise PedidoInvalido(error.mensaje) from None
+        if preparada_.avisos:
+            raise PedidoInvalido(preparada_.avisos[0])
+        return preparada_
+
+    def _extraer(preparada_):
+        lineas_, por_empresa_, exonera_ = [], [], False
+        for c in preparada_.comprobantes:
+            t = c.totales
+            por_empresa_.append(
                 {
-                    "producto": ln.entrada.producto,
-                    "empresa": c.empresa,
-                    "almacen": ln.entrada.almacen,
-                    "descripcion": ln.descripcion,
-                    "cantidad": ln.entrada.cantidad,
-                    "precio_unitario": _q(importes.total / ln.entrada.cantidad),
-                    "base": importes.valor_venta,
-                    "igv": importes.igv,
-                    "total": importes.total,
-                    "es_envio": es_envio,
+                    "empresa": c.empresa.pk,
+                    "razon_social": c.empresa.razon_social,
+                    "base": format(t.op_gravada + t.op_exonerada + t.op_inafecta, "f"),
+                    "igv": format(t.igv, "f"),
+                    "total": format(t.total, "f"),
                 }
             )
+            for ln, importes in zip(c.lineas, t.lineas, strict=True):
+                es_envio = (
+                    producto_de_envio is not None and ln.entrada.producto.pk == producto_de_envio.pk
+                )
+                if not es_envio and ln.afectacion.grupo == EXONERADO:
+                    exonera_ = True
+                lineas_.append(
+                    {
+                        "producto": ln.entrada.producto,
+                        "empresa": c.empresa,
+                        "almacen": ln.entrada.almacen,
+                        "descripcion": ln.descripcion,
+                        "cantidad": ln.entrada.cantidad,
+                        "precio_unitario": _q(importes.total / ln.entrada.cantidad),
+                        "base": importes.valor_venta,
+                        "igv": importes.igv,
+                        "total": importes.total,
+                        "es_envio": es_envio,
+                        "descuento": CERO,
+                    }
+                )
+        return lineas_, por_empresa_, exonera_
+
+    preparada = _preparar(entradas_venta)
+    lineas, por_empresa, exonera = _extraer(preparada)
+
+    # --- Cupón de descuento: se calcula sobre lo que dio el motor y se vuelve a pasar por él ---
+    cupon_usado, descuento_total, descuento_productos, aviso_cupon = None, CERO, CERO, ""
+    if cupon_codigo:
+        cupon_usado = cupones.obtener(ctx.organizacion_id, cupon_codigo)
+        cupones.revisar(
+            cupon_usado,
+            cuenta,
+            productos_total=sum((ln["total"] for ln in lineas if not ln["es_envio"]), CERO),
+        )
+        antes: dict[int, dict] = {}
+        reparto = None
+        if cupon_usado.tipo == Cupon.Tipo.ENVIO_GRATIS:
+            envio_antes = sum((ln["total"] for ln in lineas if ln["es_envio"]), CERO)
+            if envio_antes <= 0:
+                raise CuponInvalido(
+                    "Este cupón es de envío gratis y tu pedido no paga envío por la tienda."
+                )
+            entradas_venta = [
+                e
+                for e in entradas_venta
+                if producto_de_envio is None or e.producto.pk != producto_de_envio.pk
+            ]
+            descuento_total = envio_antes
+        else:
+            minimos: dict[int, Decimal] = {}
+
+            def _minimo_de(producto) -> Decimal:
+                if producto.pk not in minimos:
+                    normal = ofertas.precio_normal(ctx, producto) or CERO
+                    minimos[producto.pk] = ofertas.minimo_permitido(ctx, producto, normal)[0]
+                return minimos[producto.pk]
+
+            reparto = cupones.repartir(
+                cupon_usado,
+                lineas,
+                en_oferta=lambda p: _precio_de_oferta(p) is not None,
+                minimo_de=_minimo_de,
+            )
+            fracciones = {
+                lineas[i]["producto"].pk: f for i, f in reparto.fracciones.items() if f > 0
+            }
+            if not fracciones:
+                raise CuponInvalido("Este cupón no baja el precio de tus productos.")
+            antes = {ln["producto"].pk: ln for ln in lineas if ln["producto"].pk in fracciones}
+            nuevas = []
+            for e in entradas_venta:
+                previa = antes.get(e.producto.pk)
+                if previa is None:
+                    nuevas.append(e)
+                    continue
+                unitario = previa["base"] / previa["cantidad"]
+                rebajado = (unitario * (Decimal(1) - fracciones[e.producto.pk])).quantize(
+                    Decimal("0.0001")
+                )
+                nuevas.append(dataclasses.replace(e, precio_unitario=rebajado))
+            entradas_venta = nuevas
+        preparada = _preparar(entradas_venta)
+        nuevas_lineas, por_empresa, exonera = _extraer(preparada)
+        if reparto is not None:
+            for ln in nuevas_lineas:
+                previa = antes.get(ln["producto"].pk)
+                if previa is not None and not ln["es_envio"]:
+                    ln["descuento"] = previa["total"] - ln["total"]
+            descuento_productos = sum((ln["descuento"] for ln in nuevas_lineas), CERO)
+            descuento_total = descuento_productos
+            if descuento_total <= 0:
+                raise CuponInvalido("Este cupón no baja el precio de tus productos.")
+            if descuento_total < reparto.descuento_ideal - CENTIMO * 2:
+                aviso_cupon = (
+                    "El cupón se aplicó solo en parte: algunos productos no pueden bajar más "
+                    "de su precio mínimo."
+                )
+        lineas = nuevas_lineas
+
     total = preparada.total
     envio_total = sum((ln["total"] for ln in lineas if ln["es_envio"]), CERO)
     productos_total = total - envio_total
@@ -462,7 +564,8 @@ def _calcular(
             f"Para compras de más de S/ {ventas.TOPE_BOLETA_SIN_IDENTIFICAR:,.2f} la boleta "
             "lleva tu DNI."
         )
-    exonerado = exonera and productos_total < mostrado - CENTIMO / 2
+    # El descuento de un cupón baja el total sin que sea exoneración de IGV.
+    exonerado = exonera and productos_total + descuento_productos < mostrado - CENTIMO / 2
     return Calculo(
         modalidad=modalidad,
         entrega=envio or {},
@@ -478,6 +581,9 @@ def _calcular(
         igv_exonerado=exonerado,
         motivo_igv=MOTIVO_EXONERADO if exonerado else "",
         punto=punto,
+        cupon=cupon_usado,
+        descuento=descuento_total,
+        aviso_cupon=aviso_cupon,
     )
 
 
@@ -492,9 +598,19 @@ def calcular(ctx: Contexto, entradas: list[dict], **kwargs) -> Calculo:
         return _calcular(ctx, entradas, **kwargs)
 
 
-def totales_exactos(ctx: Contexto, entradas, **kwargs) -> dict:
-    """Los totales del motor para la vista previa de la compra (sin crear nada)."""
-    c = calcular(ctx, entradas, exigir_documento=False, **kwargs)
+def totales_exactos(ctx: Contexto, entradas, *, cupon: str = "", cuenta=None, **kwargs) -> dict:
+    """Los totales del motor para la vista previa de la compra (sin crear nada).
+
+    Con un cupón que no se puede usar, los totales salen SIN cupón y se explica por qué.
+    """
+    cupon_error = ""
+    try:
+        c = calcular(
+            ctx, entradas, exigir_documento=False, cupon_codigo=cupon, cuenta=cuenta, **kwargs
+        )
+    except CuponInvalido as error:
+        cupon_error = error.mensaje
+        c = calcular(ctx, entradas, exigir_documento=False, **kwargs)
     return {
         "por_empresa": c.por_empresa,
         "subtotal_productos": format(_q(c.subtotal_productos), "f"),
@@ -504,6 +620,19 @@ def totales_exactos(ctx: Contexto, entradas, **kwargs) -> dict:
         "igv_exonerado": c.igv_exonerado,
         "motivo_igv": c.motivo_igv,
         "zona_fiscal": c.zona_fiscal,
+        "descuento": format(_q(c.descuento), "f"),
+        "cupon": (
+            {
+                "codigo": c.cupon.codigo,
+                "nombre": c.cupon.nombre,
+                "tipo": c.cupon.tipo,
+                "aviso": c.aviso_cupon,
+            }
+            if c.cupon
+            else None
+        ),
+        "cupon_error": cupon_error,
+        "adelanto": adelantos.evaluar(adelantos.configuracion(ctx.organizacion_id), calculo=c),
     }
 
 
@@ -545,6 +674,10 @@ def crear_pedido(
     punto_id: int | None,
     comprobante: DatosComprobante,
     clave,
+    cupon: str = "",
+    pago: str = "COMPLETO",
+    metodo: str = "CULQI",
+    cuenta_transferencia_id: int | None = None,
 ) -> tuple[PedidoTienda, bool]:
     """Crea el pedido y aparta el stock. Devuelve ``(pedido, creado)``; con la misma ``clave``
     devuelve el pedido ya creado (un reintento del navegador no duplica nada)."""
@@ -587,8 +720,21 @@ def crear_pedido(
                 punto_id=punto_id,
                 comprobante=comprobante,
                 bloquear=True,
+                cupon_codigo=cupon,
+                cuenta=cuenta,
             )
-            return _guardar(cuenta, ctx, calculo, direccion, clave, ahora), True
+            pedido = _guardar(
+                cuenta,
+                ctx,
+                calculo,
+                direccion,
+                clave,
+                ahora,
+                pago=pago,
+                metodo=metodo,
+                cuenta_transferencia_id=cuenta_transferencia_id,
+            )
+            return pedido, True
     except IntegrityError:
         # Dos pedidos con la misma clave a la vez: gana el primero.
         existente = (
@@ -599,8 +745,36 @@ def crear_pedido(
         return existente, False
 
 
-def _guardar(cuenta, ctx, c: Calculo, direccion, clave, ahora) -> PedidoTienda:
+def _guardar(
+    cuenta,
+    ctx,
+    c: Calculo,
+    direccion,
+    clave,
+    ahora,
+    *,
+    pago="COMPLETO",
+    metodo="CULQI",
+    cuenta_transferencia_id=None,
+) -> PedidoTienda:
     envio = c.entrega or {}
+    acordado = {}
+    plazo_pago = ahora + timedelta(minutes=settings.TIENDA_PEDIDO_MINUTOS)
+    transferencia = None
+    if metodo == PedidoTienda.PagoMetodo.TRANSFERENCIA:
+        if pago == "ADELANTO":
+            raise PedidoInvalido("El adelanto se paga con tarjeta o Yape.")
+        config_pago = transferencias.configuracion(ctx.organizacion_id)
+        transferencia = transferencias.validar_para_pedido(config_pago, cuenta_transferencia_id, c)
+        plazo_pago = transferencias.plazo(config_pago, ahora)
+    if pago == "ADELANTO":
+        config = adelantos.configuracion(ctx.organizacion_id)
+        oferta = adelantos.evaluar(config, calculo=c)
+        if not oferta or not oferta["disponible"]:
+            raise PedidoInvalido(
+                (oferta or {}).get("motivo") or "El pago con adelanto no está disponible."
+            )
+        acordado = adelantos.campos_del_pedido(config, Decimal(oferta["monto"]))
     ubicacion = ""
     if direccion is not None:
         u = Ubigeo.objects.filter(codigo=direccion.ubigeo).first()
@@ -611,7 +785,11 @@ def _guardar(cuenta, ctx, c: Calculo, direccion, clave, ahora) -> PedidoTienda:
         cuenta=cuenta,
         modalidad=c.modalidad,
         clave_idempotencia=clave,
-        expira_en=ahora + timedelta(minutes=settings.TIENDA_PEDIDO_MINUTOS),
+        expira_en=plazo_pago,
+        pago_metodo=PedidoTienda.PagoMetodo.TRANSFERENCIA
+        if transferencia
+        else PedidoTienda.PagoMetodo.CULQI,
+        cuenta_transferencia=transferencia,
         ubigeo_entrega=direccion.ubigeo if direccion else "",
         ubicacion_entrega=ubicacion,
         direccion_entrega=direccion.direccion if direccion else "",
@@ -636,7 +814,12 @@ def _guardar(cuenta, ctx, c: Calculo, direccion, clave, ahora) -> PedidoTienda:
         total=_q(c.total),
         igv_exonerado=c.igv_exonerado,
         motivo_igv=c.motivo_igv,
+        cupon_codigo=c.cupon.codigo if c.cupon else "",
+        descuento_cupon=_q(c.descuento),
+        **acordado,
     )
+    if c.cupon is not None:
+        cupones.reservar(pedido, c.cupon, cuenta, _q(c.descuento))
     for ln in c.lineas:
         linea = LineaPedido.objects.sin_ambito().create(
             organizacion_id=ctx.organizacion_id,
@@ -651,6 +834,7 @@ def _guardar(cuenta, ctx, c: Calculo, direccion, clave, ahora) -> PedidoTienda:
             igv=_q(ln["igv"]),
             total=_q(ln["total"]),
             es_envio=ln["es_envio"],
+            descuento=_q(ln.get("descuento", CERO)),
         )
         if ln["almacen"] is not None:
             ReservaStock.objects.sin_ambito().create(
@@ -683,7 +867,8 @@ def _con_pago_en_camino(ahora=None):
 
 
 def liberar_reservas(pedido: PedidoTienda) -> int:
-    """Suelta el stock apartado del pedido (cancelar, vencer)."""
+    """Suelta el stock apartado del pedido (cancelar, vencer) y el cupón que usaba."""
+    cupones.liberar(pedido)
     return (
         ReservaStock.objects.sin_ambito()
         .filter(pedido=pedido, liberada_en__isnull=True)
@@ -776,6 +961,20 @@ def pedido_salida(p: PedidoTienda, *, detalle: bool = True) -> dict:
             PedidoTienda.Estado.REEMBOLSO_PENDIENTE,
         ),
         "monto_reembolsado": format(p.monto_reembolsado, "f"),
+        "pago_metodo": p.pago_metodo,
+        "transferencia": transferencias.salida(p),
+        # Lo que se cobra ahora y lo que queda por pagar al recoger (si hubo adelanto).
+        "forma_pago": {
+            "modo": p.pago_modo,
+            "cobrado_ahora": format(p.monto_a_cobrar, "f"),
+            "saldo": format(p.saldo, "f"),
+            "devuelto": format(p.adelanto_devuelto, "f"),
+            "retenido": format(p.adelanto_retenido, "f"),
+            "adelanto_vence_en": p.adelanto_vence_en.isoformat() if p.adelanto_vence_en else None,
+            "condiciones": adelantos.texto_condiciones(p)
+            if p.pago_modo == PedidoTienda.PagoModo.ADELANTO
+            else "",
+        },
     }
     if not detalle:
         return base
@@ -794,6 +993,7 @@ def pedido_salida(p: PedidoTienda, *, detalle: bool = True) -> dict:
     return {
         **base,
         "comprobantes": comprobantes,
+        "garantias": garantias_cliente.de_pedido(p),
         "entrega": {
             "ubicacion": p.ubicacion_entrega,
             "direccion": p.direccion_entrega,
@@ -820,6 +1020,8 @@ def pedido_salida(p: PedidoTienda, *, detalle: bool = True) -> dict:
             "total": format(p.total, "f"),
             "igv_exonerado": p.igv_exonerado,
             "motivo_igv": p.motivo_igv,
+            "cupon": p.cupon_codigo,
+            "descuento_cupon": format(p.descuento_cupon, "f"),
         },
         "lineas": [
             {
@@ -828,6 +1030,7 @@ def pedido_salida(p: PedidoTienda, *, detalle: bool = True) -> dict:
                 "cantidad": format(ln.cantidad.normalize(), "f"),
                 "precio_unitario": format(ln.precio_unitario, "f"),
                 "total": format(ln.total, "f"),
+                "descuento": format(ln.descuento, "f"),
                 "es_envio": ln.es_envio,
                 # Solo cuando el equipo ya va hacia el cliente; antes la serie puede cambiar.
                 "series": series_pedido.series_para_cliente(p, ln),

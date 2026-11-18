@@ -113,10 +113,14 @@ class PendienteView(_DeTraspaso):
                 ),
                 "se_puede_enviar": not anulado and vigente is None,
                 "remitente": {"nombre": empresa.razon_social, "ruc": empresa.ruc},
-                "destinatario": {"nombre": destinataria.razon_social, "documento": destinataria.ruc},
+                "destinatario": {
+                    "nombre": destinataria.razon_social,
+                    "documento": destinataria.ruc,
+                },
                 "entre_empresas": entre_empresas,
                 "motivo": (
-                    guias.MotivoTraslado.OTROS if entre_empresas
+                    guias.MotivoTraslado.OTROS
+                    if entre_empresas
                     else guias.MotivoTraslado.ENTRE_ESTABLECIMIENTOS
                 ).value,
                 "motivos": [{"codigo": codigo, "nombre": nombre} for codigo, nombre in MOTIVOS],

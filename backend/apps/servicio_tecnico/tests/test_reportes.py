@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.mantenimiento.models import Personal
 from apps.seguridad.tests.conftest import cliente_de
-from apps.servicio_tecnico import reportes
+from apps.servicio_tecnico import comision_tecnico, reportes
 from apps.servicio_tecnico.models import ComisionTecnico, EstadoOrden
 from apps.servicio_tecnico.tests.test_garantia import _entregar, _terminada
 from apps.servicio_tecnico.tests.test_presupuesto import BASE, _con_tecnico
@@ -58,15 +58,62 @@ class TestComisionAlEntregar:
         orden.refresh_from_db()
         assert orden.comision_porcentaje == Decimal("10.00")
 
-    def test_sin_porcentaje_o_sin_tecnico_no_hay_comision(self, banco):
-        sin_porcentaje = _terminada(banco, (banco.servicio, 1), tecnico=_tecnico(banco))
-        _entregar(banco, sin_porcentaje, "59.00")
-        sin_porcentaje.refresh_from_db()
-        assert sin_porcentaje.comision_monto == Decimal("0.00")
+    def test_sin_porcentaje_propio_gana_el_general_que_empieza_en_1_por_ciento(self, banco):
+        orden = _terminada(banco, (banco.servicio, 1), tecnico=_tecnico(banco))
+        _entregar(banco, orden, "59.00")
+        orden.refresh_from_db()
+        assert (orden.comision_base, orden.comision_porcentaje, orden.comision_monto) == (
+            Decimal("50.00"),
+            Decimal("1.00"),
+            Decimal("0.50"),
+        )
+
+    def test_el_general_se_puede_cambiar_y_vale_desde_ese_momento(self, banco):
+        tecnico = _tecnico(banco)
+        antes = _terminada(banco, (banco.servicio, 1), tecnico=tecnico)
+        _entregar(banco, antes, "59.00")
+        comision_tecnico.fijar_por_defecto(banco.empresa.pk, "2,5")
+        despues = _terminada(banco, (banco.servicio, 1), tecnico=tecnico)
+        _entregar(banco, despues, "59.00")
+        antes.refresh_from_db()
+        despues.refresh_from_db()
+        assert antes.comision_porcentaje == Decimal("1.00")  # la ya entregada conserva el suyo
+        assert (despues.comision_porcentaje, despues.comision_monto) == (
+            Decimal("2.50"),
+            Decimal("1.25"),
+        )
+
+    def test_un_porcentaje_propio_de_cero_gana_cero_aunque_haya_general(self, banco):
+        orden = _terminada(banco, (banco.servicio, 1), tecnico=_tecnico(banco, comision="0"))
+        _entregar(banco, orden, "59.00")
+        orden.refresh_from_db()
+        assert (orden.comision_porcentaje, orden.comision_monto) == (
+            Decimal("0.00"),
+            Decimal("0.00"),
+        )
+
+    def test_el_porcentaje_propio_le_gana_al_general(self, banco):
+        comision_tecnico.fijar_por_defecto(banco.empresa.pk, "3")
+        orden = _terminada(banco, (banco.servicio, 1), tecnico=_tecnico(banco, comision="10"))
+        _entregar(banco, orden, "59.00")
+        orden.refresh_from_db()
+        assert orden.comision_porcentaje == Decimal("10.00")
+
+    def test_sin_tecnico_no_hay_comision(self, banco):
         sin_tecnico = _terminada(banco, (banco.servicio, 1))
         _entregar(banco, sin_tecnico, "59.00")
         sin_tecnico.refresh_from_db()
         assert sin_tecnico.comision_monto is None
+
+    def test_el_general_se_valida_y_quitar_el_propio_vuelve_al_general(self, banco):
+        for malo in ("-1", "101", "abc"):
+            with pytest.raises(ValueError):
+                comision_tecnico.fijar_por_defecto(banco.empresa.pk, malo)
+        tecnico = _tecnico(banco, comision="10")
+        assert comision_tecnico.de_tecnico(tecnico) == (Decimal("10.00"), True)
+        assert comision_tecnico.quitar_propio(tecnico) is True
+        assert comision_tecnico.de_tecnico(tecnico) == (Decimal("1.00"), False)
+        assert comision_tecnico.quitar_propio(tecnico) is False
 
     def test_el_porcentaje_se_valida(self, banco):
         tecnico = _tecnico(banco)
@@ -246,7 +293,10 @@ class TestApi:
         api = cliente_de("admin")
         base = {"empresa": banco.empresa.pk}
         lista = api.get(f"{BASE}/comisiones/", base).json()["tecnicos"]
-        assert [(t["id"], t["porcentaje"]) for t in lista] == [(tecnico.pk, "0.00")]
+        assert [(t["id"], t["porcentaje"], t["propio"]) for t in lista] == [
+            (tecnico.pk, "1.00", False)  # sin uno propio gana el general (empieza en 1 %)
+        ]
+        assert api.get(f"{BASE}/comisiones/", base).json()["por_defecto"] == "1.00"
         r = api.put(
             f"{BASE}/comisiones/{tecnico.pk}/?empresa={banco.empresa.pk}",
             {"porcentaje": "12.5"},
@@ -254,6 +304,29 @@ class TestApi:
         )
         assert (r.status_code, r.json()["porcentaje"]) == (200, "12.50")
         assert api.get(f"{BASE}/comisiones/", base).json()["tecnicos"][0]["porcentaje"] == "12.50"
+
+    def test_el_general_se_fija_por_la_api_y_el_tecnico_puede_volver_a_el(self, banco):
+        tecnico = _tecnico(banco, comision="12.5")
+        api = cliente_de("admin")
+        base = {"empresa": banco.empresa.pk}
+        r = api.put(
+            f"{BASE}/comisiones/por-defecto/?empresa={banco.empresa.pk}",
+            {"porcentaje": "2"},
+            format="json",
+        )
+        assert (r.status_code, r.json()["por_defecto"]) == (200, "2.00"), r.content
+        assert (
+            api.put(
+                f"{BASE}/comisiones/por-defecto/?empresa={banco.empresa.pk}",
+                {"porcentaje": "101"},
+                format="json",
+            ).status_code
+            == 400
+        )
+        r = api.delete(f"{BASE}/comisiones/{tecnico.pk}/?empresa={banco.empresa.pk}")
+        assert (r.status_code, r.json()["porcentaje"], r.json()["propio"]) == (200, "2.00", False)
+        fila = api.get(f"{BASE}/comisiones/", base).json()["tecnicos"][0]
+        assert (fila["porcentaje"], fila["propio"]) == ("2.00", False)
 
     def test_comision_invalida(self, banco):
         tecnico = _tecnico(banco)

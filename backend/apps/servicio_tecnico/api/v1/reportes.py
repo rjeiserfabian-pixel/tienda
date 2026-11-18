@@ -22,7 +22,7 @@ from apps.mantenimiento.models import Personal
 from apps.seguridad.mixins import filtrar_por_alcance
 from apps.seguridad.permissions import PermisoRBAC, empresa_declarada
 from apps.seguridad.services import permisos_engine as motor
-from apps.servicio_tecnico import reportes, servicios
+from apps.servicio_tecnico import comision_tecnico, reportes, servicios
 from apps.servicio_tecnico.flujo import ESTADOS_QUE_ESPERAN
 from apps.servicio_tecnico.models import EstadoOrden, HistorialEstado, OrdenServicio
 
@@ -221,7 +221,42 @@ class ComisionesView(_VistaDeEmpresa):
     @extend_schema(tags=TAG, parameters=[OpenApiParameter("empresa", int, required=True)])
     def get(self, request):
         empresa = empresa_declarada(request, self)
-        return Response({"tecnicos": reportes.comisiones_configuradas(empresa)})
+        return Response(
+            {
+                "por_defecto": f"{comision_tecnico.por_defecto(empresa):.2f}",
+                "tecnicos": reportes.comisiones_configuradas(empresa),
+            }
+        )
+
+
+class ComisionPorDefectoView(_VistaDeEmpresa):
+    """El porcentaje general de los técnicos que no tienen uno propio (por defecto, 1 %)."""
+
+    permiso_requerido = COMISIONES
+
+    @extend_schema(
+        tags=TAG,
+        request=ComisionEntrada,
+        parameters=[OpenApiParameter("empresa", int, required=True)],
+    )
+    def put(self, request):
+        empresa = empresa_declarada(request, self)
+        datos = ComisionEntrada(data=request.data)
+        datos.is_valid(raise_exception=True)
+        antes = comision_tecnico.por_defecto(empresa)
+        try:
+            fila = comision_tecnico.fijar_por_defecto(empresa, datos.validated_data["porcentaje"])
+        except ValueError as error:
+            raise ValidationError({"porcentaje": str(error)}) from None
+        registrar(
+            "servicio_tecnico.comision_por_defecto",
+            recurso_tipo="configuracion_comision_tecnicos",
+            recurso_id=fila.pk,
+            empresa_id=empresa,
+            resumen=f"Comisión general de técnicos: {antes}% → {fila.porcentaje_defecto}%",
+            detalle={"antes": str(antes), "despues": str(fila.porcentaje_defecto)},
+        )
+        return Response({"por_defecto": f"{fila.porcentaje_defecto:.2f}"})
 
 
 class ComisionDetalleView(_VistaDeEmpresa):
@@ -258,3 +293,29 @@ class ComisionDetalleView(_VistaDeEmpresa):
             detalle={"antes": antes, "despues": str(fila.porcentaje)},
         )
         return Response({"id": personal.pk, "porcentaje": str(fila.porcentaje)})
+
+    @extend_schema(tags=TAG, parameters=[OpenApiParameter("empresa", int, required=True)])
+    def delete(self, request, personal_id: int):
+        """El técnico vuelve a usar el porcentaje general de la empresa."""
+        empresa = empresa_declarada(request, self)
+        personal = Personal.objects.filter(pk=personal_id, empresa_id=empresa).first()
+        if personal is None:
+            raise NotFound("No existe ese técnico en la empresa.")
+        antes, propio = comision_tecnico.de_tecnico(personal)
+        if comision_tecnico.quitar_propio(personal):
+            general = comision_tecnico.por_defecto(empresa)
+            registrar(
+                "servicio_tecnico.comision_quitada",
+                recurso_tipo="personal",
+                recurso_id=personal.pk,
+                empresa_id=empresa,
+                resumen=f"Comisión de {personal.nombre_completo}: {antes}% → general {general}%",
+                detalle={"antes": str(antes), "general": str(general)},
+            )
+        return Response(
+            {
+                "id": personal.pk,
+                "porcentaje": f"{comision_tecnico.por_defecto(empresa):.2f}",
+                "propio": False,
+            }
+        )

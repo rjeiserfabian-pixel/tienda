@@ -64,13 +64,12 @@ function Diapositiva({ banner: b, indice, usarMovil, total }) {
  *
  * Funciona SIN JavaScript (es una tira con «imán» que se desliza con el dedo o la rueda). Con JavaScript
  * agrega flechas, puntos y avance automático que se detiene al pasar el mouse, al enfocar, al tocar,
- * con «reducir movimiento» del sistema, con la pestaña oculta o si la persona lo pausa.
+ * con «reducir movimiento» del sistema o con la pestaña oculta. No hay botón de pausa (decisión del dueño).
  * El alto está fijo por CSS (aspect-ratio): no mueve la página al cargar.
  */
 export default function CarruselBanners({ banners }) {
   const pista = useRef(null)
   const [activo, setActivo] = useState(0)
-  const [pausaManual, setPausaManual] = useState(false)
   const [pausaTemporal, setPausaTemporal] = useState(false)
   const [reducido, setReducido] = useState(false)
   const [oculta, setOculta] = useState(false)
@@ -108,7 +107,7 @@ export default function CarruselBanners({ banners }) {
     setActivo(Math.round(el.scrollLeft / el.clientWidth))
   }, [])
 
-  const automatico = total > 1 && !pausaManual && !pausaTemporal && !reducido && !oculta
+  const automatico = total > 1 && !pausaTemporal && !reducido && !oculta
   useEffect(() => {
     if (!automatico) return undefined
     const t = setInterval(() => ir(activo + 1), CADA_MS)
@@ -152,17 +151,6 @@ export default function CarruselBanners({ banners }) {
                   </li>
                 ))}
               </ul>
-              {!reducido && (
-                <button
-                  type="button"
-                  className="banner-pausa"
-                  aria-pressed={pausaManual}
-                  aria-label={pausaManual ? 'Reanudar el avance automático' : 'Pausar el avance automático'}
-                  onClick={() => setPausaManual((v) => !v)}
-                >
-                  {pausaManual ? '▶' : '❚❚'}
-                </button>
-              )}
             </div>
           </>
         )}

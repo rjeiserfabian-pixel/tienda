@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, serializers
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from rest_framework.views import APIView
 
 from apps.core.throttles import ApiAutenticadaThrottle
 from apps.seguridad.permissions import PermisoRBAC
-from apps.tienda import gestion, reembolsos, series_pedido
+from apps.tienda import gestion, reembolsos, series_pedido, transferencias
 
 TAG = ["tienda"]
 VER = "TIENDA.PEDIDOS.VER"
@@ -99,6 +100,81 @@ class ReintentarComprobanteView(_Admin):
     @extend_schema(tags=TAG, responses={200: dict})
     def post(self, request, numero: str):
         gestion.reintentar_comprobante(self.organizacion(request), numero, usuario=request.user)
+        return Response(gestion.detalle(gestion.pedido_de(self.organizacion(request), numero)))
+
+
+class VoucherVerView(_Admin):
+    """La imagen del comprobante que subió el cliente (solo personal con permiso)."""
+
+    @extend_schema(tags=TAG, responses={200: bytes})
+    def get(self, request, numero: str):
+        contenido = transferencias.leer_voucher(self.organizacion(request), numero)
+        respuesta = HttpResponse(contenido, content_type="image/webp")
+        respuesta["Content-Disposition"] = "inline"
+        respuesta["X-Content-Type-Options"] = "nosniff"
+        return respuesta
+
+
+class ConfirmarTransferenciaEntrada(serializers.Serializer):
+    referencia = serializers.CharField(max_length=40, required=False, allow_blank=True)
+
+
+class ConfirmarTransferenciaView(_Admin):
+    @extend_schema(tags=TAG, request=ConfirmarTransferenciaEntrada, responses={200: dict})
+    def post(self, request, numero: str):
+        entrada = ConfirmarTransferenciaEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        transferencias.confirmar(
+            self.organizacion(request),
+            numero,
+            usuario=request.user,
+            referencia=entrada.validated_data.get("referencia", ""),
+        )
+        return Response(gestion.detalle(gestion.pedido_de(self.organizacion(request), numero)))
+
+
+class RechazarTransferenciaEntrada(serializers.Serializer):
+    motivo = serializers.CharField(max_length=250)
+
+
+class RechazarTransferenciaView(_Admin):
+    @extend_schema(tags=TAG, request=RechazarTransferenciaEntrada, responses={200: dict})
+    def post(self, request, numero: str):
+        entrada = RechazarTransferenciaEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        transferencias.rechazar(
+            self.organizacion(request),
+            numero,
+            usuario=request.user,
+            motivo=entrada.validated_data["motivo"],
+        )
+        return Response(gestion.detalle(gestion.pedido_de(self.organizacion(request), numero)))
+
+
+class SaldoEntrada(serializers.Serializer):
+    medio_pago = serializers.IntegerField(min_value=1)
+    referencia = serializers.CharField(max_length=60, required=False, allow_blank=True)
+
+
+class SaldoView(_Admin):
+    """Un pedido con adelanto: lo que falta cobrar y, al recoger, cobrar y entregar."""
+
+    @extend_schema(tags=TAG, responses={200: dict})
+    def get(self, request, numero: str):
+        return Response(gestion.datos_del_saldo(self.organizacion(request), numero))
+
+    @extend_schema(tags=TAG, request=SaldoEntrada, responses={200: dict})
+    def post(self, request, numero: str):
+        entrada = SaldoEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        d = entrada.validated_data
+        gestion.cobrar_saldo_y_entregar(
+            self.organizacion(request),
+            numero,
+            medio_pago_id=d["medio_pago"],
+            referencia=d.get("referencia", ""),
+            usuario=request.user,
+        )
         return Response(gestion.detalle(gestion.pedido_de(self.organizacion(request), numero)))
 
 

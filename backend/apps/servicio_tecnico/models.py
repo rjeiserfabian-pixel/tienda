@@ -596,12 +596,19 @@ class RepuestoOrden(EmpresaScopedModel):
 
 
 class ComisionTecnico(EmpresaScopedModel):
-    """Qué porcentaje de la mano de obra cobrada gana un técnico. Sin fila, no gana comisión."""
+    """Qué porcentaje de la mano de obra cobrada gana un técnico.
+
+    Sin fila, o con el porcentaje vacío, gana el porcentaje GENERAL de la empresa
+    (``ConfiguracionComisionTecnicos``). Con un valor (aunque sea 0) gana ese. Para «volver al
+    general» se deja vacío: la fila no se borra porque los borrados son lógicos.
+    """
 
     personal = models.OneToOneField(
         "mantenimiento.Personal", on_delete=models.PROTECT, related_name="comision_servicio"
     )
-    porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0"))
+    porcentaje = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0"), null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "comisión del técnico"
@@ -614,6 +621,30 @@ class ComisionTecnico(EmpresaScopedModel):
 
     def __str__(self) -> str:
         return f"{self.personal_id}: {self.porcentaje}%"
+
+
+class ConfiguracionComisionTecnicos(EmpresaScopedModel):
+    """El porcentaje de comisión que gana un técnico que NO tiene uno propio (uno por empresa).
+
+    Sin fila, rige ``comision_tecnico.PORCENTAJE_INICIAL`` (1 %). Un técnico con su propia fila en
+    ``ComisionTecnico`` (aunque sea 0 %) usa la suya.
+    """
+
+    porcentaje_defecto = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("1"))
+
+    class Meta:
+        verbose_name = "comisión de técnicos por defecto"
+        verbose_name_plural = "comisiones de técnicos por defecto"
+        constraints = [
+            models.UniqueConstraint(fields=["empresa"], name="uq_comision_tecnicos_empresa"),
+            models.CheckConstraint(
+                condition=Q(porcentaje_defecto__gte=0) & Q(porcentaje_defecto__lte=100),
+                name="ck_comision_tecnicos_rango",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.empresa_id}: {self.porcentaje_defecto}%"
 
 
 class ConfiguracionAvisos(EmpresaScopedModel):

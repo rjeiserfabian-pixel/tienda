@@ -6,4 +6,5 @@ app_name = "auditoria"
 
 urlpatterns = [
     path("eventos/", views.EventoListView.as_view(), name="eventos"),
+    path("riesgos/", views.RiesgosView.as_view(), name="riesgos"),
 ]

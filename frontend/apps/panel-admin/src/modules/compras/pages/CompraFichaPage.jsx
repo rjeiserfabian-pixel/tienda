@@ -5,6 +5,7 @@ import { api } from '../../../core/api/client'
 import BotonVolver from '../../../shared/components/BotonVolver'
 import Can from '../../../shared/components/Can'
 import CabeceraListado from '../../../shared/components/CabeceraListado'
+import HistorialRecurso from '../../../shared/components/HistorialRecurso'
 import EstadoConsulta from '../../../shared/components/EstadoConsulta'
 import { Icono } from '../../../shared/components/IconosPanel'
 import PanelTarjeta from '../../../shared/components/PanelTarjeta'
@@ -43,6 +44,7 @@ function Ficha({ compra: c }) {
     <>
       <CabeceraListado icono="truck" titulo={`Compra N° ${numeroInterno(c)}`} descripcion={`${c.tipo_comprobante_nombre} ${c.comprobante} · ${FORMAS_PAGO[c.forma_pago]}`}>
         <span className={`estado-pildora ${vigente ? 'activo' : 'inactivo'}`}>{vigente ? 'Vigente' : 'Anulada'}</span>
+        <HistorialRecurso tipo="compra" id={c.id} titulo={`Compra N° ${numeroInterno(c)}`} />
         {vigente && puedeCambiarPrecios && (
           <button type="button" className="boton-cabecera" onClick={() => setDialogo('precios')}>
             <Icono nombre="coins" tam={19} /> Actualizar precios de venta

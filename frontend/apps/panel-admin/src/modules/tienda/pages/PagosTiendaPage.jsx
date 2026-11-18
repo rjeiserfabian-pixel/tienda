@@ -9,9 +9,10 @@ import { Icono } from '../../../shared/components/IconosPanel'
 import Interruptor from '../../../shared/components/Interruptor'
 import PanelTarjeta from '../../../shared/components/PanelTarjeta'
 import { useMutacion } from '../../../shared/hooks/useMutacion'
-import { cambiosDePagos, desdeServidor, MAX_LLAVE, MODOS, revisarPagos } from '../pagos'
+import { cambiosDePagos, desdeServidor, MAX_LLAVE, MODOS, revisarPagos, SI_NO_RECOGE } from '../pagos'
 import '../tienda.css'
 import '../pagos.css'
+import '../cupones.css'
 
 const CLAVE = ['tienda', 'pagos']
 
@@ -91,6 +92,7 @@ export default function PagosTiendaPage() {
   }
 
   const empresas = datos?.opciones?.empresas ?? []
+  const cuentasPosibles = datos?.opciones?.cuentas ?? []
   const quitandoSecreta = Boolean(form?.quitar_llave_secreta)
   const hayLlaveGuardada = Boolean(datos?.tiene_llave_secreta)
   const secretaPendiente = Boolean(form && (form.culqi_llave_secreta.trim() || quitandoSecreta))
@@ -254,6 +256,115 @@ export default function PagosTiendaPage() {
                     )}
                   </Campo>
                 </div>
+              </PanelTarjeta>
+
+              <PanelTarjeta
+                id="pagos-adelanto"
+                icono="coins"
+                titulo="Pago con adelanto"
+                descripcion="Para pedidos que se recogen en tienda: el cliente paga una parte ahora y el resto al recoger. Solo si todos los productos son de la empresa que recibe los pagos."
+              >
+                <Interruptor
+                  activo={form.adelanto_activo}
+                  onCambio={(v) => poner('adelanto_activo', v)}
+                  texto={form.adelanto_activo ? 'Adelanto ofrecido' : 'Adelanto desactivado'}
+                  descripcion={form.adelanto_activo ? 'Al recoger en tienda, el cliente puede elegir pagar solo el adelanto.' : 'Los pedidos se pagan completos.'}
+                />
+                <div className="pagos-rejilla">
+                  <Campo etiqueta="Porcentaje del adelanto (%)" error={errores.adelanto_pct} ayuda="Qué parte del total se paga ahora (de 1 a 90).">
+                    {(p) => <input {...p} name="adelanto_pct" inputMode="decimal" value={form.adelanto_pct} onChange={(e) => poner('adelanto_pct', e.target.value)} />}
+                  </Campo>
+                  <Campo etiqueta="Desde qué monto del pedido (S/)" error={errores.adelanto_minimo} ayuda="Con IGV. En pedidos menores se paga completo.">
+                    {(p) => <input {...p} name="adelanto_minimo" inputMode="decimal" value={form.adelanto_minimo} onChange={(e) => poner('adelanto_minimo', e.target.value)} />}
+                  </Campo>
+                  <Campo etiqueta="Días para recoger" error={errores.adelanto_dias} ayuda="Mientras tanto el producto queda apartado para el cliente.">
+                    {(p) => <input {...p} name="adelanto_dias" inputMode="numeric" value={form.adelanto_dias} onChange={(e) => poner('adelanto_dias', e.target.value)} />}
+                  </Campo>
+                </div>
+                <fieldset className="cupon-tipos">
+                  <legend>Si el cliente no recoge a tiempo</legend>
+                  <div className="pagos-modos" role="group" aria-label="Qué pasa si no recoge">
+                    {Object.entries(SI_NO_RECOGE).map(([valor, o]) => (
+                      <button key={valor} type="button" className="pagos-modo" aria-pressed={form.adelanto_si_no_recoge === valor} onClick={() => poner('adelanto_si_no_recoge', valor)}>
+                        <strong>{o.texto}</strong>
+                        <small>{o.detalle}</small>
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className="pagos-rejilla">
+                  {form.adelanto_si_no_recoge === 'PENALIDAD' ? (
+                    <Campo etiqueta="Qué parte del adelanto se retiene (%)" error={errores.adelanto_penalidad_pct} ayuda="100 = se pierde todo el adelanto. El resto se devuelve al cliente.">
+                      {(p) => <input {...p} name="adelanto_penalidad_pct" inputMode="decimal" value={form.adelanto_penalidad_pct} onChange={(e) => poner('adelanto_penalidad_pct', e.target.value)} />}
+                    </Campo>
+                  ) : (
+                    <>
+                      <Campo etiqueta="Comisión de la pasarela (%)" error={errores.comision_pasarela_pct} ayuda="Lo que cobra Culqi por cada pago (con IGV). Se descuenta al devolver.">
+                        {(p) => <input {...p} name="comision_pasarela_pct" inputMode="decimal" value={form.comision_pasarela_pct} onChange={(e) => poner('comision_pasarela_pct', e.target.value)} />}
+                      </Campo>
+                      <Campo etiqueta="Comisión fija por pago (S/)" error={errores.comision_pasarela_fija} ayuda="Si la pasarela cobra un monto fijo además del porcentaje.">
+                        {(p) => <input {...p} name="comision_pasarela_fija" inputMode="decimal" value={form.comision_pasarela_fija} onChange={(e) => poner('comision_pasarela_fija', e.target.value)} />}
+                      </Campo>
+                    </>
+                  )}
+                </div>
+                <p className="celda-suave">El cliente ve estas condiciones antes de pagar. Los pedidos ya hechos conservan las condiciones con que se crearon.</p>
+              </PanelTarjeta>
+
+              <PanelTarjeta
+                id="pagos-transferencia"
+                icono="wallet"
+                titulo="Transferencia o depósito"
+                descripcion="El cliente paga desde su banco a una de tus cuentas y sube la foto del comprobante; tú verificas que el dinero llegó. Solo para pedidos con productos de una sola empresa (la dueña de la cuenta)."
+              >
+                <Interruptor
+                  activo={form.transferencia_activa}
+                  onCambio={(v) => poner('transferencia_activa', v)}
+                  texto={form.transferencia_activa ? 'Transferencia ofrecida' : 'Transferencia desactivada'}
+                  descripcion={form.transferencia_activa ? 'El cliente puede elegir pagar por transferencia o depósito.' : 'Solo se paga con tarjeta o Yape.'}
+                />
+                {errores.transferencia_activa && (
+                  <p role="alert" className="campo-error">
+                    {errores.transferencia_activa}
+                  </p>
+                )}
+                <fieldset className="cupon-tipos">
+                  <legend>Cuentas que se muestran al cliente</legend>
+                  {cuentasPosibles.length === 0 ? (
+                    <p className="celda-suave">No hay cuentas de banco o billetera en soles. Créalas primero en Caja y bancos → Cuentas.</p>
+                  ) : (
+                    <ul className="pedido-lista-simple">
+                      {cuentasPosibles.map((c) => (
+                        <li key={c.id}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={form.cuentas_transferencia.includes(c.id)}
+                              onChange={(e) => poner('cuentas_transferencia', e.target.checked ? [...form.cuentas_transferencia, c.id] : form.cuentas_transferencia.filter((x) => x !== c.id))}
+                            />{' '}
+                            <b>{c.nombre}</b> · {c.empresa}
+                            <span className="sub-texto">
+                              {[c.banco, c.numero && `N.º ${c.numero}`, c.cci && `CCI ${c.cci}`].filter(Boolean).join(' · ')}
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {errores.cuentas_transferencia && (
+                    <p role="alert" className="campo-error">
+                      {errores.cuentas_transferencia}
+                    </p>
+                  )}
+                </fieldset>
+                <div className="pagos-rejilla">
+                  <Campo etiqueta="Horas para pagar" error={errores.transferencia_horas} ayuda="Mientras tanto el stock queda apartado. Entre 1 y 168 horas.">
+                    {(p) => <input {...p} name="transferencia_horas" inputMode="numeric" value={form.transferencia_horas} onChange={(e) => poner('transferencia_horas', e.target.value)} />}
+                  </Campo>
+                </div>
+                <Campo etiqueta="Indicaciones para el cliente (opcional)" error={errores.transferencia_instrucciones} ayuda="Ej.: «Escribe tu número de pedido en el concepto de la transferencia».">
+                  {(p) => <textarea {...p} name="transferencia_instrucciones" rows={3} maxLength={600} value={form.transferencia_instrucciones} onChange={(e) => poner('transferencia_instrucciones', e.target.value)} />}
+                </Campo>
               </PanelTarjeta>
 
               {errores._general && !hayErrorDeCampo && (

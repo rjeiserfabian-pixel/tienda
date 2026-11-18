@@ -1,0 +1,53 @@
+/* Páginas legales y Libro de Reclamaciones */
+.leg-pagina,
+.lib-pagina {
+  max-width: 860px;
+}
+.leg-texto {
+  display: grid;
+  gap: 14px;
+}
+.leg-texto h2 {
+  margin: 10px 0 0;
+  font-size: 1.2rem;
+}
+.leg-texto p {
+  margin: 0;
+  line-height: 1.65;
+}
+.lib-form {
+  display: grid;
+  gap: 18px;
+}
+.lib-bloque {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.lib-bloque legend {
+  padding: 0 8px;
+  font-weight: 700;
+}
+.lib-fila {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.lib-tipos {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.lib-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lib-tipos .com-opcion > span {
+  display: grid;
+  gap: 2px;
+}

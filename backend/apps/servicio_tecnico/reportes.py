@@ -29,6 +29,7 @@ from django.utils import timezone
 from apps.mantenimiento.models import Area, EstadoRegistro, Personal
 from apps.ventas.models import LineaProforma, Venta
 
+from . import comision_tecnico
 from .flujo import ESTADOS_QUE_ESPERAN
 from .models import (
     ComisionTecnico,
@@ -204,6 +205,7 @@ def tecnicos(empresa_id: int, p: Periodo, *, con_importes: bool) -> list[dict]:
                 comision=Coalesce(Sum("comision_monto"), CERO, output_field=DINERO),
             )
         }
+    general = comision_tecnico.por_defecto(empresa_id)
     filas = []
     for t in personal.order_by("apellidos", "nombres"):
         e = por_tecnico.get(t.pk)
@@ -220,9 +222,8 @@ def tecnicos(empresa_id: int, p: Periodo, *, con_importes: bool) -> list[dict]:
         }
         if con_importes:
             c = cobradas.get(t.pk)
-            comision = getattr(t, "comision_servicio", None)
             fila.update(
-                porcentaje=str(comision.porcentaje) if comision else "0.00",
+                porcentaje=str(_porcentaje_de(t, general)),
                 mano_obra=str(c["mano_obra"]) if c else "0.00",
                 comision=str(c["comision"]) if c else "0.00",
             )
@@ -231,7 +232,7 @@ def tecnicos(empresa_id: int, p: Periodo, *, con_importes: bool) -> list[dict]:
 
 
 def comisiones_configuradas(empresa_id: int) -> list[dict]:
-    """Los técnicos de la empresa y el porcentaje de comisión de cada uno."""
+    """Los técnicos de la empresa y el porcentaje que gana cada uno (``propio`` o el general)."""
     filas = (
         Personal.objects.filter(
             empresa_id=empresa_id, area=Area.TECNICO, estado=EstadoRegistro.ACTIVO
@@ -239,20 +240,26 @@ def comisiones_configuradas(empresa_id: int) -> list[dict]:
         .select_related("comision_servicio")
         .order_by("apellidos", "nombres")
     )
-    filas = list(filas)
+    general = comision_tecnico.por_defecto(empresa_id)
     return [
         {
             "id": t.pk,
             "nombre": t.nombre_completo,
-            "porcentaje": f"{_porcentaje_de(t):.2f}",
+            "porcentaje": f"{_porcentaje_de(t, general):.2f}",
+            "propio": _propio(t),
         }
         for t in filas
     ]
 
 
-def _porcentaje_de(tecnico: Personal) -> Decimal:
+def _porcentaje_de(tecnico: Personal, general: Decimal) -> Decimal:
+    """Lo que gana el técnico: su porcentaje propio o, si no tiene, el general de la empresa."""
+    return tecnico.comision_servicio.porcentaje if _propio(tecnico) else general
+
+
+def _propio(tecnico: Personal) -> bool:
     fila = getattr(tecnico, "comision_servicio", None)
-    return fila.porcentaje if fila else CERO
+    return fila is not None and fila.porcentaje is not None
 
 
 def fijar_comision(personal: Personal, porcentaje: Decimal) -> ComisionTecnico:

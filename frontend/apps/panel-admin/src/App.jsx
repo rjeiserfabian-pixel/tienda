@@ -27,6 +27,11 @@ const ConfiguracionTiendaPage = lazy(() => import('./modules/tienda/pages/Config
 const EnviosTiendaPage = lazy(() => import('./modules/tienda/pages/EnviosTiendaPage'))
 const ArmadorTiendaPage = lazy(() => import('./modules/tienda/pages/ArmadorTiendaPage'))
 const PagosTiendaPage = lazy(() => import('./modules/tienda/pages/PagosTiendaPage'))
+const CuponesTiendaPage = lazy(() => import('./modules/tienda/pages/CuponesTiendaPage'))
+const ResenasTiendaPage = lazy(() => import('./modules/tienda/pages/ResenasTiendaPage'))
+const ReclamosTiendaPage = lazy(() => import('./modules/tienda/pages/ReclamosTiendaPage'))
+const MetricasTiendaPage = lazy(() => import('./modules/tienda/pages/MetricasTiendaPage'))
+const PaginasLegalesPage = lazy(() => import('./modules/tienda/pages/PaginasLegalesPage'))
 const PedidosTiendaPage = lazy(() => import('./modules/tienda/pages/PedidosTiendaPage'))
 const OfertasTiendaPage = lazy(() => import('./modules/tienda/pages/OfertasTiendaPage'))
 const ProductosPage = lazy(() => import('./modules/almacen/pages/ProductosPage'))
@@ -46,6 +51,11 @@ const ReportesVentasPage = lazy(() => import('./modules/ventas/pages/ReportesVen
 const GuiasRemisionPage =lazy(() => import('./modules/ventas/pages/GuiasRemisionPage'))
 const NuevaGuiaPage = lazy(() => import('./modules/ventas/pages/NuevaGuiaPage'))
 const VentasPorCobrarPage = lazy(() => import('./modules/ventas/pages/VentasPorCobrarPage'))
+const GarantiasPage = lazy(() => import('./modules/garantias/pages/GarantiasPage'))
+const ReclamosGarantiaPage = lazy(() => import('./modules/garantias/pages/ReclamosGarantiaPage'))
+const ReportesGarantiaPage = lazy(() => import('./modules/garantias/pages/ReportesGarantiaPage'))
+const ComisionesPage = lazy(() => import('./modules/comisiones/pages/ComisionesPage'))
+const MisComisionesPage = lazy(() => import('./modules/comisiones/pages/MisComisionesPage'))
 const ConsultaPreciosPage = lazy(() => import('./modules/ventas/pages/ConsultaPreciosPage'))
 const OrdenesPage = lazy(() => import('./modules/servicio-tecnico/pages/OrdenesPage'))
 const EstadoPublicoPage = lazy(() => import('./modules/servicio-tecnico/pages/EstadoPublicoPage'))
@@ -126,6 +136,7 @@ const AuditoriaPage = lazy(() => import('./modules/seguridad/pages/AuditoriaPage
 const RecuperarPage = lazy(() => import('./modules/seguridad/pages/RecuperarPage'))
 const RecuperarConfirmarPage = lazy(() => import('./modules/seguridad/pages/RecuperarConfirmarPage'))
 const OrganizacionPage = lazy(() => import('./modules/organizacion/pages/OrganizacionPage'))
+const WhatsAppPage = lazy(() => import('./modules/organizacion/pages/WhatsAppPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },
@@ -172,6 +183,7 @@ export default function App() {
                   </Route>
                   <Route element={<RequirePermiso permiso="SEGURIDAD.ORGANIZACION.GESTIONAR" organizacion />}>
                     <Route path="/seguridad/organizacion" element={<OrganizacionPage />} />
+                    <Route path="/seguridad/whatsapp" element={<WhatsAppPage />} />
                   </Route>
                   <Route element={<RequirePermiso permiso="SEGURIDAD.USUARIOS.VER" organizacion />}>
                     <Route path="/seguridad/usuarios" element={<UsuariosPage />} />
@@ -274,6 +286,11 @@ export default function App() {
                     <Route path="/ventas/historial" element={<VentasPage />} />
                     <Route path="/ventas/historial/:id" element={<VentaFichaPage />} />
                     <Route path="/ventas/por-cobrar" element={<VentasPorCobrarPage />} />
+                    <Route path="/ventas/garantias" element={<GarantiasPage />} />
+                    <Route path="/ventas/garantias/reclamos" element={<ReclamosGarantiaPage />} />
+                    <Route path="/ventas/garantias/reportes" element={<ReportesGarantiaPage />} />
+                    <Route path="/ventas/comisiones" element={<ComisionesPage />} />
+                    <Route path="/ventas/mis-comisiones" element={<MisComisionesPage />} />
                   </Route>
                   <Route element={<RequirePermiso permiso="COMPRAS.VER" />}>
                     <Route path="/compras/registro" element={<ComprasPage />} />
@@ -378,6 +395,11 @@ export default function App() {
                   </Route>
                   <Route element={<RequirePermiso permiso="TIENDA.PAGOS.CONFIGURAR" organizacion />}>
                     <Route path="/tienda/pagos" element={<PagosTiendaPage />} />
+                    <Route path="/tienda/cupones" element={<CuponesTiendaPage />} />
+                    <Route path="/tienda/resenas" element={<ResenasTiendaPage />} />
+                    <Route path="/tienda/reclamos" element={<ReclamosTiendaPage />} />
+                    <Route path="/tienda/metricas" element={<MetricasTiendaPage />} />
+                    <Route path="/tienda/paginas" element={<PaginasLegalesPage />} />
                   </Route>
                   <Route element={<RequirePermiso permiso="MANTENIMIENTO.CLASIFICACION.VER" organizacion />}>
                     <Route path="/tienda/especificaciones" element={<EspecificacionesTiendaPage />} />

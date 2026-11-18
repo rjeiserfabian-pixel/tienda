@@ -18,11 +18,10 @@ from apps.mantenimiento.models import TipoProducto
 from apps.ventas.models import Venta
 from apps.ventas.servicios import CobroEntrada, LineaEntrada, registrar_venta
 
-from . import adelantos, servicios
+from . import adelantos, comision_tecnico, servicios
 from . import presupuesto as presupuestos
 from .exceptions import OrdenInvalida, RepuestosPendientes, TransicionInvalida
 from .models import (
-    ComisionTecnico,
     EstadoOrden,
     EstadoRepuesto,
     HistorialEstado,
@@ -118,8 +117,7 @@ def _congelar_comision(orden: OrdenServicio, vigente: PresupuestoOrden) -> None:
         ),
         Decimal("0"),
     )
-    fila = ComisionTecnico.objects.filter(personal_id=orden.tecnico_id).first()
-    porcentaje = fila.porcentaje if fila else Decimal("0")
+    porcentaje, _ = comision_tecnico.de_tecnico(orden.tecnico)
     orden.comision_base = base
     orden.comision_porcentaje = porcentaje
     orden.comision_monto = (base * porcentaje / 100).quantize(Decimal("0.01"), ROUND_HALF_UP)

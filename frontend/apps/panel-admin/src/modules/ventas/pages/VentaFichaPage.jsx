@@ -5,6 +5,7 @@ import { api } from '../../../core/api/client'
 import BotonVolver from '../../../shared/components/BotonVolver'
 import Can from '../../../shared/components/Can'
 import CabeceraListado from '../../../shared/components/CabeceraListado'
+import HistorialRecurso from '../../../shared/components/HistorialRecurso'
 import EstadoConsulta from '../../../shared/components/EstadoConsulta'
 import { Icono } from '../../../shared/components/IconosPanel'
 import PanelTarjeta from '../../../shared/components/PanelTarjeta'
@@ -193,6 +194,7 @@ export default function VentaFichaPage() {
               <span className="pildora" data-tono={estado.tono}>
                 {estado.texto}
               </span>
+              <HistorialRecurso recursos={[['venta', v.id], ...v.comprobantes.map((c) => ['comprobante_venta', c.id])]} titulo={`Venta N° ${numeroInterno(v)}`} />
               {vigentes > 0 && !v.parcial && (
                 <Can permiso="VENTAS.ANULAR">
                   <button type="button" className="boton-cabecera peligro-suave" onClick={() => setAnulando('venta')}>

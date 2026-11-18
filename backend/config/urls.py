@@ -19,6 +19,8 @@ urlpatterns = [
     path("api/v1/caja/", include("apps.caja.api.v1.urls")),
     path("api/v1/gastos/", include("apps.gastos.api.v1.urls")),
     path("api/v1/ventas/", include("apps.ventas.api.v1.urls")),
+    path("api/v1/garantias/", include("apps.garantias.api.v1.urls")),
+    path("api/v1/comisiones/", include("apps.comisiones.api.v1.urls")),
     path("api/v1/servicio-tecnico/", include("apps.servicio_tecnico.api.v1.urls")),
     path("api/v1/facturacion/", include("apps.facturacion.api.v1.urls")),
     path("api/v1/rrhh/", include("apps.rrhh.api.v1.urls")),

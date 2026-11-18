@@ -2,12 +2,12 @@
 
 Los identificadores (organización, usuario, empresa) se guardan SIN clave foránea: el rastro
 debe sobrevivir aunque el registro original cambie, y no debe frenar ninguna operación.
-La inmutabilidad se hace cumplir en el modelo y en el QuerySet; la única salida es la
-purga por retención (``purgar_anteriores``). En producción conviene reforzarla en la base
-de datos (ver docs/DESPLIEGUE_VPS.md).
+La inmutabilidad se hace cumplir en el modelo, en el QuerySet y en la base de datos (un
+disparador de PostgreSQL, migración 0002); la única salida es la purga por retención
+(``purgar_anteriores``).
 """
 
-from django.db import models
+from django.db import connection, models, transaction
 from django.utils import timezone
 
 
@@ -26,8 +26,20 @@ class EventoQuerySet(models.QuerySet):
         raise AuditoriaInmutable("Los eventos de auditoría no se eliminan; use la purga.")
 
     def purgar_anteriores(self, fecha) -> int:
-        """Única vía de borrado: retención de eventos más antiguos que ``fecha``."""
-        eliminados, _ = models.QuerySet.delete(self.filter(creado_en__lt=fecha))
+        """Única vía de borrado: retención de eventos más antiguos que ``fecha``.
+
+        El disparador de la base solo deja borrar si se avisa con ``app.auditoria_purga``; el aviso
+        vale solo dentro de esta transacción (``SET LOCAL``).
+        """
+        with transaction.atomic():
+            if connection.vendor == "postgresql":
+                with connection.cursor() as cursor:
+                    cursor.execute("SET LOCAL app.auditoria_purga = 'on'")
+            eliminados, _ = models.QuerySet.delete(self.filter(creado_en__lt=fecha))
+            if connection.vendor == "postgresql":
+                # Si esto corre dentro de una transacción mayor, el aviso no debe quedar abierto.
+                with connection.cursor() as cursor:
+                    cursor.execute("SET LOCAL app.auditoria_purga = 'off'")
         return eliminados
 
 

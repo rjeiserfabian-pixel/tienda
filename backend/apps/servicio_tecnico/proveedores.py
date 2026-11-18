@@ -5,6 +5,9 @@
 * ``meta``: WhatsApp Cloud API de Meta. Un aviso que el negocio inicia solo puede ir con una
   plantilla aprobada por Meta, así que cada aviso usa la plantilla configurada para su evento.
 
+La cuenta se toma de lo que el negocio guardó en el panel (``ConfiguracionWhatsApp``). Si el
+negocio nunca guardó nada, se usa lo que diga el servidor (variables de entorno), como antes.
+
 El token nunca se escribe en el registro ni en los errores que se guardan.
 """
 
@@ -31,6 +34,7 @@ class Mensaje:
     evento: str
     texto: str  # el mensaje completo (lo que se le cuenta al cliente)
     parametros: tuple[str, ...]  # lo que llena la plantilla: nombre, código, enlace
+    idioma: str = ""  # solo para casos especiales (la prueba de Meta va en inglés)
 
 
 class Proveedor:
@@ -71,11 +75,32 @@ class ProveedorConsola(Proveedor):
 class ProveedorMeta(Proveedor):
     nombre = "meta"
 
+    def __init__(self, cuenta=None):
+        # ``cuenta``: la configuración guardada en el panel. Sin ella, manda el servidor.
+        self._cuenta = cuenta
+
+    @property
+    def _token(self) -> str:
+        return self._cuenta.token if self._cuenta else settings.WHATSAPP_META_TOKEN
+
+    @property
+    def _telefono_id(self) -> str:
+        return self._cuenta.telefono_id if self._cuenta else settings.WHATSAPP_META_TELEFONO_ID
+
+    @property
+    def _version(self) -> str:
+        return self._cuenta.version_api if self._cuenta else settings.WHATSAPP_META_VERSION
+
+    @property
+    def _idioma(self) -> str:
+        return self._cuenta.idioma if self._cuenta else settings.WHATSAPP_META_IDIOMA
+
     def _plantilla(self, evento: str) -> str:
-        return (settings.WHATSAPP_PLANTILLAS.get(evento) or "").strip()
+        plantillas = self._cuenta.plantillas if self._cuenta else settings.WHATSAPP_PLANTILLAS
+        return str((plantillas or {}).get(evento) or "").strip()
 
     def configurado(self) -> bool:
-        return bool(settings.WHATSAPP_META_TOKEN and settings.WHATSAPP_META_TELEFONO_ID)
+        return bool(self._token and self._telefono_id)
 
     def falta(self, evento: str) -> str:
         if not self.configurado():
@@ -85,30 +110,28 @@ class ProveedorMeta(Proveedor):
         return ""
 
     def enviar(self, mensaje: Mensaje) -> str:
-        url = (
-            f"https://graph.facebook.com/{settings.WHATSAPP_META_VERSION}/"
-            f"{settings.WHATSAPP_META_TELEFONO_ID}/messages"
-        )
+        url = f"https://graph.facebook.com/{self._version}/{self._telefono_id}/messages"
         cuerpo = {
             "messaging_product": "whatsapp",
             "to": mensaje.telefono,
             "type": "template",
             "template": {
                 "name": self._plantilla(mensaje.evento),
-                "language": {"code": settings.WHATSAPP_META_IDIOMA},
-                "components": [
-                    {
-                        "type": "body",
-                        "parameters": [{"type": "text", "text": p} for p in mensaje.parametros],
-                    }
-                ],
+                "language": {"code": mensaje.idioma or self._idioma},
             },
         }
+        if mensaje.parametros:  # una plantilla sin variables (la de prueba de Meta) no lleva cuerpo
+            cuerpo["template"]["components"] = [
+                {
+                    "type": "body",
+                    "parameters": [{"type": "text", "text": p} for p in mensaje.parametros],
+                }
+            ]
         try:
             respuesta = requests.post(
                 url,
                 json=cuerpo,
-                headers={"Authorization": f"Bearer {settings.WHATSAPP_META_TOKEN}"},
+                headers={"Authorization": f"Bearer {self._token}"},
                 timeout=settings.WHATSAPP_TIMEOUT,
             )
         except requests.RequestException:
@@ -137,6 +160,27 @@ def _motivo(respuesta) -> str:
 _PROVEEDORES = {"apagado": ProveedorApagado, "consola": ProveedorConsola, "meta": ProveedorMeta}
 
 
-def obtener() -> Proveedor:
-    """El proveedor elegido en el servidor (uno desconocido se trata como apagado)."""
+def _del_panel(organizacion_id: int) -> Proveedor | None:
+    """El proveedor según lo guardado en el panel, o ``None`` si el negocio nunca lo configuró."""
+    from apps.organizacion.models import ConfiguracionWhatsApp
+
+    cuenta = (
+        ConfiguracionWhatsApp.objects.sin_ambito().filter(organizacion_id=organizacion_id).first()
+    )
+    if cuenta is None:
+        return None
+    if cuenta.modo == ConfiguracionWhatsApp.Modo.ACTIVO:
+        return ProveedorMeta(cuenta)
+    if cuenta.modo == ConfiguracionWhatsApp.Modo.PRUEBA:
+        return ProveedorConsola()
+    return ProveedorApagado()
+
+
+def obtener(organizacion_id: int | None = None) -> Proveedor:
+    """El proveedor que corresponde: lo del panel si el negocio lo configuró; si no, el servidor
+    (uno desconocido se trata como apagado)."""
+    if organizacion_id is not None:
+        del_panel = _del_panel(organizacion_id)
+        if del_panel is not None:
+            return del_panel
     return _PROVEEDORES.get(settings.WHATSAPP_PROVEEDOR, ProveedorApagado)()

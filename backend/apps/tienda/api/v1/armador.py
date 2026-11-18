@@ -3,8 +3,10 @@
 import logging
 
 from django.db import transaction
+from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, serializers
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,7 +14,7 @@ from apps.auditoria.servicios import registrar
 from apps.core.throttles import ApiAutenticadaThrottle, TiendaThrottle
 from apps.mantenimiento.models import CampoEspecificacion, Categoria, EstadoRegistro
 from apps.seguridad.permissions import PermisoRBAC
-from apps.tienda import armador, catalogo
+from apps.tienda import armador, armador_datos, catalogo
 from apps.tienda.exceptions import DatosInvalidos
 from apps.tienda.models import ConfiguracionArmador
 
@@ -114,7 +116,7 @@ class ValidarView(_Base):
 class _Admin(APIView):
     permission_classes = [permissions.IsAuthenticated, PermisoRBAC]
     throttle_classes = [ApiAutenticadaThrottle]
-    permisos_por_accion = {"get": CONFIGURAR, "patch": CONFIGURAR}
+    permisos_por_accion = {"get": CONFIGURAR, "patch": CONFIGURAR, "post": CONFIGURAR}
 
     def empresas_de_la_operacion(self, request):
         return [None]  # es de la organización, no de una empresa
@@ -259,3 +261,57 @@ class ArmadorAdminView(_Admin):
             )
         transaction.on_commit(catalogo.invalidar)
         return Response(_salida(config))
+
+
+# ---------------------------------------------------------------------------
+# Datos de los productos para el armador (informe y carga por Excel)
+# ---------------------------------------------------------------------------
+class DatosArmadorView(_Admin):
+    """Qué productos están completos para el armador y cuáles les falta algún dato."""
+
+    @extend_schema(tags=TAG, responses={200: dict})
+    def get(self, request):
+        return Response(armador_datos.informe(request.user.organizacion_id))
+
+
+class PlantillaDatosView(_Admin):
+    """El Excel para completar los datos (por defecto, solo los productos incompletos)."""
+
+    @extend_schema(tags=TAG, responses={200: bytes})
+    def get(self, request):
+        contenido = armador_datos.plantilla_xlsx(
+            request.user.organizacion_id,
+            solo_incompletos=request.query_params.get("todos") != "1",
+            espacio=request.query_params.get("espacio", "")[:30],
+        )
+        respuesta = HttpResponse(
+            contenido,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        respuesta["Content-Disposition"] = 'attachment; filename="datos-arma-tu-pc.xlsx"'
+        return respuesta
+
+
+class ImportarDatosEntrada(serializers.Serializer):
+    archivo = serializers.FileField()
+    aplicar = serializers.BooleanField(required=False, default=False)
+
+
+class ImportarDatosView(_Admin):
+    """Revisa o aplica el Excel completado: sin ``aplicar`` solo informa lo que pasaría."""
+
+    parser_classes = [MultiPartParser, FormParser]
+
+    @extend_schema(tags=TAG, request=ImportarDatosEntrada, responses={200: dict})
+    def post(self, request):
+        entrada = ImportarDatosEntrada(data=request.data)
+        entrada.is_valid(raise_exception=True)
+        d = entrada.validated_data
+        return Response(
+            armador_datos.cargar(
+                request.user.organizacion_id,
+                d["archivo"],
+                aplicar=d["aplicar"],
+                usuario=request.user,
+            )
+        )

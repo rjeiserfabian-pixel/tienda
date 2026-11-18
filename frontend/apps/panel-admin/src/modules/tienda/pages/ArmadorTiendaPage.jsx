@@ -7,6 +7,7 @@ import { Icono } from '../../../shared/components/IconosPanel'
 import Interruptor from '../../../shared/components/Interruptor'
 import PanelTarjeta from '../../../shared/components/PanelTarjeta'
 import { useMutacion } from '../../../shared/hooks/useMutacion'
+import DatosArmadorTarjeta from '../components/DatosArmadorTarjeta'
 import { cambiosDelArmador, desdeServidor, espacioDeCategoria, MAX_UNIDADES, revisarArmador } from '../armador'
 import '../tienda.css'
 import '../armador.css'
@@ -276,6 +277,8 @@ export default function ArmadorTiendaPage() {
           </form>
         )}
       </EstadoConsulta>
+
+      <DatosArmadorTarjeta />
     </main>
   )
 }

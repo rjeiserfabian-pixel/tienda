@@ -419,3 +419,22 @@
   background: var(--grad-acento);
   border-color: transparent;
 }
+
+.st-segmentos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.st-segmentos button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--borde, #d0d5dd);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+.st-segmentos button.activo {
+  background: var(--color-primario, #1d4ed8);
+  color: #fff;
+  border-color: transparent;
+}

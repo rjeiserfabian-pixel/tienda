@@ -72,6 +72,9 @@ export async function abrirCulqi({ llavePublica, titulo, total, tarjeta = true, 
 /** Estados del pedido: texto y color de la insignia. */
 export const ESTADOS = {
   PENDIENTE_PAGO: { texto: 'Pendiente de pago', clase: 'poco' },
+  POR_VERIFICAR: { texto: 'Verificando tu transferencia', clase: 'poco' },
+  ADELANTO_PAGADO: { texto: 'Adelanto pagado', clase: 'ok' },
+  NO_RECOGIDO: { texto: 'No se recogió a tiempo', clase: 'agotado' },
   PAGADO: { texto: 'Pagado', clase: 'ok' },
   EN_PREPARACION: { texto: 'En preparación', clase: 'ok' },
   LISTO_PARA_RECOJO: { texto: 'Listo para recoger', clase: 'ok' },
@@ -91,7 +94,7 @@ export const claseEstado = (estado) => ESTADOS[estado]?.clase ?? ''
 
 /** ¿Ya se cobró? (aunque falte el comprobante o la revisión). */
 export const estaPagado = (estado) =>
-  ['PAGADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'ENVIADO', 'ENTREGADO', 'PAGADO_SIN_COMPROBANTE', 'PAGADO_FUERA_DE_PLAZO'].includes(estado)
+  ['PAGADO', 'ADELANTO_PAGADO', 'EN_PREPARACION', 'LISTO_PARA_RECOJO', 'ENVIADO', 'ENTREGADO', 'PAGADO_SIN_COMPROBANTE', 'PAGADO_FUERA_DE_PLAZO'].includes(estado)
 
 export function fechaCorta(iso) {
   try {

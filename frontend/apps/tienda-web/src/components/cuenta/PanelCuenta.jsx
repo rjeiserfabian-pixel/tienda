@@ -12,6 +12,8 @@ const SECCIONES = [
   { href: '/cuenta/datos', texto: 'Mis datos' },
   { href: '/cuenta/direcciones', texto: 'Mis direcciones' },
   { href: '/cuenta/pedidos', texto: 'Mis pedidos' },
+  { href: '/cuenta/garantias', texto: 'Mis garantías' },
+  { href: '/cuenta/favoritos', texto: 'Mis favoritos' },
   { href: '/cuenta/seguridad', texto: 'Seguridad' },
 ]
 

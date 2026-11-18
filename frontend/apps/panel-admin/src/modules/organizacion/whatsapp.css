@@ -1,0 +1,60 @@
+/* Pantalla «WhatsApp Business» (reusa los estilos de pagos.css) */
+.wa-grupo {
+  display: grid;
+  gap: 10px;
+}
+
+.wa-grupo h3 {
+  margin: 8px 0 0;
+  font-size: 1rem;
+}
+
+.wa-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wa-aviso {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.wa-aviso-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wa-texto {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primario, #2563eb) 7%, transparent);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.wa-copiar {
+  font-size: 0.82rem;
+}
+
+.wa-prueba {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.wa-prueba > :first-child {
+  flex: 1 1 220px;
+}

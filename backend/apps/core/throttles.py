@@ -24,6 +24,16 @@ class ApiPublicaThrottle(AnonRateThrottle):
         return caches["throttle"]
 
 
+class GarantiaConsultaThrottle(AnonRateThrottle):
+    """Buscar una garantía por serie y documento sin sesión: pocas veces por minuto, por IP."""
+
+    scope = "garantia_consulta"
+
+    @property
+    def cache(self):
+        return caches["throttle"]
+
+
 class ConsultaDocumentoThrottle(UserRateThrottle):
     """Consultas a servicios externos de pago (RENIEC/SUNAT): por usuario, para cuidar la cuota."""
 

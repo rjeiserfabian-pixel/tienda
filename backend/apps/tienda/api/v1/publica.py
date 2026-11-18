@@ -11,7 +11,7 @@ import hashlib
 import logging
 
 from django.core.cache import cache
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import permissions
 from rest_framework.exceptions import ValidationError
@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 from apps.core.exceptions import ErrorDominio
 from apps.core.throttles import TiendaFotosThrottle, TiendaThrottle
-from apps.tienda import banners, catalogo, servicios
+from apps.tienda import banners, catalogo, feed, servicios
 from apps.tienda.models import ConfiguracionTienda
 
 logger = logging.getLogger(__name__)
@@ -181,6 +181,24 @@ class MapaDelSitioView(_Publica):
         """Direcciones públicas para los buscadores (sitemap)."""
         ctx = self.contexto()
         return self.responder(request, lambda: catalogo.mapa_del_sitio(ctx))
+
+
+class FeedGoogleView(_Publica):
+    """Feed de productos para Google Merchant Center (XML)."""
+
+    ttl = 900
+
+    @extend_schema(tags=TAG, auth=[], responses={200: bytes})
+    def get(self, request):
+        ctx = self.contexto()
+        clave = self.clave(request)
+        xml = cache.get(clave)
+        if xml is None:
+            xml = feed.construir(ctx)
+            cache.set(clave, xml, self.ttl)
+        respuesta = HttpResponse(xml, content_type="application/xml; charset=utf-8")
+        respuesta["Cache-Control"] = f"public, max-age=300, s-maxage={self.ttl}"
+        return respuesta
 
 
 class FotoView(_Publica):

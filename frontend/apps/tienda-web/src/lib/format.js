@@ -7,6 +7,13 @@ const SOLES = new Intl.NumberFormat('es-PE', {
   maximumFractionDigits: 2,
 })
 
+/** «2026-11-18» → «18 de noviembre de 2026» (vacío si la fecha no es válida). */
+export function fechaDia(iso) {
+  if (!iso) return ''
+  const fecha = new Date(`${String(iso).slice(0, 10)}T12:00:00`)
+  return Number.isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 /** «1180.00» → «S/ 1,180.00». Devuelve `null` si no hay precio. */
 export function soles(valor) {
   if (valor === null || valor === undefined || valor === '') return null

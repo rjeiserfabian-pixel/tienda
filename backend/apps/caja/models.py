@@ -32,6 +32,9 @@ class Origen:
     # Lo que un cliente deja por adelantado en el taller (recibo interno) y lo que se le devuelve.
     ADELANTO_SERVICIO = "ADELANTO_SERVICIO"
     DEVOLUCION_ADELANTO = "DEVOLUCION_ADELANTO"
+    # Lo que un cliente de la tienda virtual paga por adelantado de un pedido que recogerá en tienda
+    # (entrada) y lo que se le devuelve si no lo recoge (salida).
+    ADELANTO_TIENDA = "ADELANTO_TIENDA"
     # Lo que se entrega a un trabajador como adelanto de sueldo o préstamo (RR.HH.).
     ADELANTO_PERSONAL = "ADELANTO_PERSONAL"
     # El sueldo que se paga a un trabajador al cerrar la planilla del mes (RR.HH.).
@@ -64,6 +67,7 @@ class Origen:
         REEMBOLSO_COMPRA,
         ADELANTO_SERVICIO,
         DEVOLUCION_ADELANTO,
+        ADELANTO_TIENDA,
         ADELANTO_PERSONAL,
         PAGO_PLANILLA,
         DEPOSITO_CTS,

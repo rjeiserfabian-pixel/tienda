@@ -1,0 +1,60 @@
+/* Pantalla «Métricas de la tienda» */
+.metrica-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.metrica-cifra {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+}
+
+.metrica-cifra dt {
+  color: var(--texto-suave, #64748b);
+  font-size: 0.8125rem;
+}
+
+.metrica-cifra dd {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.metrica-cifra small {
+  color: var(--texto-suave, #64748b);
+}
+
+.metrica-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.metrica-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+  padding: 8px 0 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.metrica-barra {
+  flex: 1 1 0;
+  min-width: 2px;
+  border-radius: 3px 3px 0 0;
+  background: var(--primario, #2563eb);
+}
+
+.metrica-atencion {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import serializers
 from rest_framework.response import Response
 
-from apps.tienda import carrito, catalogo, cuentas, pedidos
+from apps.tienda import carrito, catalogo, cuentas, cupones, pedidos
 from apps.tienda.exceptions import DatosInvalidos, PedidoInvalido
 from apps.tienda.models import DireccionCuenta
 
@@ -70,6 +70,7 @@ class CotizarEntrada(CarritoEntrada):
     direccion = serializers.IntegerField(min_value=1, required=False)
     punto = serializers.IntegerField(min_value=1, required=False)
     comprobante = serializers.DictField(required=False)
+    cupon = serializers.CharField(max_length=40, required=False, allow_blank=True)
 
 
 class CotizarView(_Compra):
@@ -102,6 +103,9 @@ class CotizarView(_Compra):
         if datos.get("modalidad") and resumen["entrega"]["valida"] and resumen["puede_comprar"]:
             from .pedidos import datos_de
 
+            codigo = (datos.get("cupon") or "").strip()
+            if codigo and cuenta is not None:
+                cupones.exigir_sin_bloqueo(cuenta.pk)  # demasiados intentos fallidos: 429
             try:
                 resumen["totales"] = pedidos.totales_exactos(
                     self.contexto(),
@@ -110,7 +114,11 @@ class CotizarView(_Compra):
                     ubigeo=ubigeo,
                     punto_id=datos.get("punto"),
                     comprobante=datos_de(datos.get("comprobante", {})),
+                    cupon=codigo,
+                    cuenta=cuenta,
                 )
+                if resumen["totales"]["cupon_error"] and cuenta is not None:
+                    cupones.anotar_fallo(cuenta.pk)
             except PedidoInvalido as error:
                 resumen["totales_error"] = error.mensaje
         resumen["cuenta"] = {

@@ -4,8 +4,10 @@ import BarraInferior from '@/components/BarraInferior'
 import BarraComparar from '@/components/BarraComparar'
 import Cabecera from '@/components/Cabecera'
 import Mantenimiento from '@/components/Mantenimiento'
+import Medicion from '@/components/Medicion'
 import Pie from '@/components/Pie'
 import ProveedorComparar from '@/components/ProveedorComparar'
+import ProveedorFavoritos from '@/components/ProveedorFavoritos'
 import Proveedores from '@/components/Proveedores'
 import { ErrorApi, obtenerConfiguracion, obtenerMenu } from '@/lib/api'
 import { cssDelColor } from '@/lib/tema'
@@ -35,7 +37,11 @@ export async function generateMetadata() {
   const base = process.env.SITE_URL || 'http://localhost:3000'
   return {
     metadataBase: new URL(base),
-    title: { default: config?.descripcion ? `${nombre} | ${config.descripcion.split('.')[0]}` : nombre, template: `%s | ${nombre}` },
+    title: {
+      default: config?.seo?.titulo_inicio || (config?.descripcion ? `${nombre} | ${config.descripcion.split('.')[0]}` : nombre),
+      template: `%s | ${nombre}`,
+    },
+    ...(config?.seo?.google_verificacion ? { verification: { google: config.seo.google_verificacion } } : {}),
     description: descripcion,
     openGraph: { siteName: nombre, locale: 'es_PE', type: 'website' },
     robots: { index: true, follow: true },
@@ -61,6 +67,7 @@ export default async function RootLayout({ children }) {
         {menu ? (
           <Proveedores>
             <ProveedorComparar>
+            <ProveedorFavoritos>
             <a href="#contenido" className="saltar">
               Saltar al contenido
             </a>
@@ -70,6 +77,8 @@ export default async function RootLayout({ children }) {
             <BarraComparar />
             <BarraInferior />
             <AvisoCarrito />
+            <Medicion ga4={config?.medicion?.ga4 ?? null} pixel={config?.medicion?.pixel ?? null} />
+            </ProveedorFavoritos>
             </ProveedorComparar>
           </Proveedores>
         ) : (

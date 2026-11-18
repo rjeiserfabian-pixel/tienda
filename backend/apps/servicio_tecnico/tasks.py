@@ -29,7 +29,7 @@ def enviar_notificacion(self, notificacion_id: int) -> str:
     )
     if nota is None or nota.estado != EstadoNotificacion.PENDIENTE:
         return "omitido"  # ya salió, ya falló o no existe: enviar dos veces sería peor
-    proveedor = proveedores.obtener()
+    proveedor = proveedores.obtener(nota.orden.empresa.organizacion_id)
     nota.intentos += 1
     try:
         externo = proveedor.enviar(

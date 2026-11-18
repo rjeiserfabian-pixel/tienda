@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { llamar } from '@/lib/cliente'
+import { medir } from '@/lib/medicion'
 
 /**
  * Estado compartido del navegador: la cuenta del cliente y su carrito.
@@ -201,6 +202,7 @@ export default function Proveedores({ children }) {
       return [...actual, { producto: id, cantidad: Math.min(cantidad, MAX_CANTIDAD) }]
     })
     setAviso({ producto: id, cantidad, ...(datos ?? {}), momento: Date.now() })
+    medir('add_to_cart', { items: [{ item_id: String(id), item_name: datos?.nombre ?? '', quantity: cantidad }] })
   }, [])
 
   const fijar = useCallback((producto, cantidad) => {

@@ -30,6 +30,7 @@ REST_FRAMEWORK = {
         "usuario": "1000/min",
         "mostrador": "1000/min",
         "anon": "1000/min",
+        "garantia_consulta": "1000/min",
         "consultas": "1000/min",
         "importaciones": "1000/hour",
         "exportaciones": "1000/hour",

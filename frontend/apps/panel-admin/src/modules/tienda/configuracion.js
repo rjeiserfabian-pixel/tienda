@@ -31,6 +31,10 @@ export const TEXTOS = {
   libro_reclamaciones_url: 500,
   terminos_url: 500,
   privacidad_url: 500,
+  seo_titulo_inicio: 70,
+  google_verificacion: 100,
+  ga4_id: 20,
+  meta_pixel_id: 20,
 }
 const ENLACES = ['mapa_url', 'facebook', 'instagram', 'tiktok', 'youtube', 'libro_reclamaciones_url', 'terminos_url', 'privacidad_url']
 const norm = (t) => String(t ?? '').trim().replace(/\s+/g, ' ')
@@ -89,6 +93,12 @@ export function revisarConfiguracion(form) {
     const v = form[campo].trim()
     if (v && !/^https?:\/\/\S+$/i.test(v)) e[campo] = 'Escribe el enlace completo, empezando con https://'
   }
+  const ga4 = form.ga4_id.trim()
+  if (ga4 && !/^G-[A-Z0-9]{4,15}$/.test(ga4)) e.ga4_id = 'Escribe un código como G-ABC123XYZ (en mayúsculas).'
+  const pixel = form.meta_pixel_id.trim()
+  if (pixel && !/^\d{8,20}$/.test(pixel)) e.meta_pixel_id = 'Escribe solo los números del píxel.'
+  const google = form.google_verificacion.trim()
+  if (google && !/^[A-Za-z0-9_-]{10,100}$/.test(google)) e.google_verificacion = 'Pega solo el código, sin etiquetas ni espacios.'
   return e
 }
 

@@ -29,9 +29,10 @@ export async function llamar(ruta, { metodo = 'GET', cuerpo, signal } = {}) {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'tienda',
-        ...(cuerpo === undefined ? {} : { 'Content-Type': 'application/json' }),
+        // Con un formulario (subir una foto) el navegador pone solo el tipo de contenido.
+        ...(cuerpo === undefined || cuerpo instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
       },
-      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
+      body: cuerpo === undefined ? undefined : cuerpo instanceof FormData ? cuerpo : JSON.stringify(cuerpo),
       credentials: 'same-origin',
       cache: 'no-store',
       signal,

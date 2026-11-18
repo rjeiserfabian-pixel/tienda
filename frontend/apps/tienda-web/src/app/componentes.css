@@ -1409,3 +1409,52 @@ button.enlace {
 .buscador-panel {
   color: var(--ink);
 }
+
+/* --- Aviso de cookies --- */
+.cookies {
+  position: fixed;
+  inset: auto 12px 12px 12px;
+  z-index: 70;
+  display: grid;
+  gap: 12px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 18px 50px rgb(7 13 36 / 0.28);
+}
+.cookies h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+.cookies p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.cookies-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+@media (min-width: 720px) {
+  .cookies {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+.enlace-pie {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.enlace-pie:hover {
+  text-decoration: underline;
+}
